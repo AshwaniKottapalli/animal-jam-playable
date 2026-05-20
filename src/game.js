@@ -537,10 +537,11 @@ export class Game {
       const cy = [710, 700, 710][i];
       if (Math.abs(x - cx) < 120 && Math.abs(y - cy) < 140) {
         Audio.play(`pet-${i + 1}`, { volume: 0.9 });
-        this._selectRenderers[i].playAnim(CONFIG.pets[i].id, 'click-1', { loop: false,
-          onComplete: () => {} });
+        const r = this._selectRenderers[i];
+        if (r) tween(r, { scale: 1.7 }, 0.1, Ease.easeOutCubic,
+          () => tween(r, { scale: 1.35 }, 0.1, Ease.easeInCubic));
         this._particles.emit(cx, cy - 40, 10, { kind: 'sparkle', color: '#ffe066', speed: 220, size: 14, lifetime: 0.6 });
-        setTimeout(() => this._toZoom(i), 250);
+        setTimeout(() => this._toZoom(i), 230);
         return;
       }
     }
@@ -599,8 +600,7 @@ export class Game {
     this._renderer.cx     = chosen.cx;
     this._renderer.cy     = chosen.cy;
     this._renderer.scale  = chosen.scale;
-    this._renderer.playAnim(this.petId, 'click-1', { loop: false,
-      onComplete: () => this._renderer.playAnim(this.petId, 'idle-1') });
+    this._renderer.playAnim(this.petId, 'idle-1');
 
     this._selectRenderers = [];
 
