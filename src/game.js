@@ -112,6 +112,11 @@ export class Game {
   // ── Input handlers ────────────────────────────────────────────────────────
   _onPointerDown(e) {
     const { x, y } = this._toCanvas(e);
+    // Start bg music on first interaction anywhere in the ad
+    if (!this._bgMusicStarted) {
+      this._bgMusicStarted = true;
+      Audio.play('bgMusic', { loop: true, volume: 0.22 });
+    }
     if (this.state === STATE.BOX_REVEAL) {
       if (this._box?.subPhase === 'OPEN') {
         // Pet tap zones active once pets have landed
@@ -615,11 +620,6 @@ export class Game {
     this._bgZoom = 1.0;
     tween(this, { _bgZoom: 1.18 }, 0.65, Ease.easeOutCubic);
 
-    // BG music starts here — fades in over 1.5s
-    if (!this._bgMusicStarted) {
-      this._bgMusicStarted = true;
-      Audio.play('bgMusic', { loop: true, volume: 0.22 });
-    }
 
     // Rug slides up from below as the pet zooms in
     this._rugY = CH + 200;
