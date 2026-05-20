@@ -1243,6 +1243,8 @@ export class Game {
     ctx.save();
     ctx.font = `bold 36px ${CONFIG.brand.fontDimbo}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 4; ctx.strokeStyle = B.darkBrown;
+    ctx.strokeText('Adopt, Explore, Decorate & Play', CW/2, 352);
     ctx.fillStyle = '#ffffff';
     ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 352);
     ctx.restore();
