@@ -86,7 +86,7 @@ export class PetRenderer {
       const afd = this._accAnim[this._accAnim.length - 1];
       const petSssY = fd.spriteSourceSize?.y ?? 0;
       const petSssX = fd.spriteSourceSize?.x ?? 0;
-      if (afd) _drawAccessoryAnchored(ctx, afd, fd, cx, cy, scale, this._accTopShift || 0, petSssY * scale, petSssX * scale);
+      if (afd) _drawAccessoryAnchored(ctx, afd, fd, cx, cy, scale, this._accTopShift || 0, petSssY * scale, -petSssX * scale);
     }
   }
 
