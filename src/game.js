@@ -1238,7 +1238,7 @@ export class Game {
 
     // 4. Tagline — above the pet, in the scenic sky zone (bigger + readable)
     const petLabel = (CONFIG.pets[this.petIdx]?.label ?? 'Pet').toUpperCase();
-    _drawBrandText(ctx, 'Adopt, Explore, Decorate & Play', CW/2, 338, 32, B.darkBrown, '#ffffff');
+    _drawBrandText(ctx, 'Adopt, Explore, Decorate & Play', CW/2, 338, 34, B.darkBrown, '#ffffff', CONFIG.brand.fontDimbo);
     _drawBrandText(ctx, `Games with YOUR ${petLabel}!`,    CW/2, 392, 52, B.darkBrown, B.orange);
 
     // 5. Pet on rug (hero)
@@ -1269,9 +1269,9 @@ export class Game {
     ctx.restore();
 
     // 8. Copyright
-    ctx.font = '11px Arial, sans-serif';
+    ctx.font = `13px ${CONFIG.brand.fontBody}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.fillText('\u00a9 2026 WildWorks. All rights reserved.', CW/2, 1220);
   }
   _show(el) {
@@ -1319,9 +1319,9 @@ function _drawWoodBox(ctx, x, y, w, h, fillColor, strokeColor) {
   ctx.restore();
 }
 
-function _drawBrandText(ctx, text, x, y, size, strokeColor, fillColor) {
+function _drawBrandText(ctx, text, x, y, size, strokeColor, fillColor, fontFace) {
   ctx.save();
-  ctx.font = `bold ${size}px ${CONFIG.brand.font}`;
+  ctx.font = `bold ${size}px ${fontFace ?? CONFIG.brand.font}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const lw = Math.ceil(size * 0.22);
@@ -1419,7 +1419,7 @@ function _drawGameIconMini(ctx, img, x, y, size) {
 function _drawSocialProofBadge(ctx, cx, cy) {
   const label = '⭐  Played by 50M+ Jammers';
   ctx.save();
-  ctx.font = 'bold 15px "Tiki Island", Impact, Arial Black, sans-serif';
+  ctx.font = `bold 15px ${CONFIG.brand.fontBody}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 

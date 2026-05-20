@@ -11,6 +11,8 @@ export const CONFIG = {
     brown:     '#7b4c2a',
     darkBrown: '#5a3010',
     font:      '"Tiki Island", Impact, Arial Black, sans-serif',
+    fontDimbo: '"Dimbo", Impact, Arial Black, sans-serif',
+    fontBody:  '"CC Digital Delivery", Arial, sans-serif',
   },
 
   pets: [
