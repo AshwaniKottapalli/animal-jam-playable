@@ -1,0 +1,183 @@
+import { getFramesByPrefix, getFrame } from './atlas.js';
+import { CONFIG } from './config.js';
+
+export class PetRenderer {
+  constructor(canvas) {
+    this.canvas   = canvas;
+    this.ctx      = canvas.getContext('2d');
+    this.petId    = null;
+    this._anim    = null;
+    this._frame   = 0;
+    this._elapsed = 0;
+    this._loop    = true;
+    this._onComplete = null;
+    this.scale    = 1;
+    this.cx       = null;  // null = canvas center
+    this.cy       = null;
+    this._accFrameData = null; // single static frame, no animation
+    this.paused = false;      // when true, update() holds on current frame
+  }
+
+  playAnim(petId, animKey, { loop = true, fps, onComplete } = {}) {
+    const pet = CONFIG.pets.find(p => p.id === petId);
+    if (!pet) return;
+    this.petId = petId;
+    const frames = getFramesByPrefix(pet.atlases, `${petId}-${animKey}-`);
+    if (!frames.length) return;
+    this._anim       = { frames, fps: fps ?? CONFIG.anim.idleFps };
+    this._frame      = 0;
+    this._elapsed    = 0;
+    this._loop       = loop;
+    this._onComplete = onComplete || null;
+  }
+
+  /**
+   * Show the accessory as a single static frame (the last/settled frame of the
+   * placement animation). No looping, no animation — just the resting pose.
+   */
+  playAccessory(petId, accIndex) {
+    const prefix = `${petId}-accessory${accIndex + 1}-`;
+    const frames  = getFramesByPrefix(['texture-pet-accessories'], prefix);
+    if (!frames.length) { this._accFrameData = null; return; }
+
+    // Use the last frame — that's the settled/resting position
+    const last = frames[frames.length - 1];
+    this._accFrameData = getFrame(last.atlas, last.frame);
+
+    // Per-accessory vertical shift (source-canvas pixels, positive = up)
+    const pet = CONFIG.pets.find(p => p.id === petId);
+    this._accTopShift = pet?.accessories?.[accIndex]?.topShift ?? 0;
+  }
+
+  stopAccessory() { this._accFrameData = null; }
+
+  update(dt) {
+    if (!this._anim || this.paused) return;
+    this._elapsed += dt;
+    const spf = 1 / this._anim.fps;
+    while (this._elapsed >= spf) {
+      this._elapsed -= spf;
+      this._frame++;
+      if (this._frame >= this._anim.frames.length) {
+        if (this._loop) {
+          this._frame = 0;
+        } else {
+          this._frame = this._anim.frames.length - 1;
+          if (this._onComplete) { this._onComplete(); this._onComplete = null; }
+        }
+      }
+    }
+  }
+
+  draw() {
+    if (!this._anim) return;
+    const f = this._anim.frames[this._frame];
+    if (!f) return;
+
+    const fd = getFrame(f.atlas, f.frame);
+    if (!fd) return;
+
+    const ctx   = this.ctx;
+    const cx    = this.cx !== null ? this.cx : this.canvas.width  / 2;
+    const cy    = this.cy !== null ? this.cy : this.canvas.height * 0.42;
+    const scale = this.scale;
+
+    // Draw the pet frame using spriteSourceSize anchoring so all frames
+    // stay registered to the same pivot point (0.5, 0.5 of sourceSize).
+    _drawAnchored(ctx, fd, cx, cy, scale);
+
+    // Draw accessory (static) stacked above the pet's source-canvas space
+    if (this._accFrameData) {
+      _drawAccessoryAnchored(ctx, this._accFrameData, fd, cx, cy, scale, this._accTopShift || 0);
+    }
+  }
+
+  getBounds() {
+    if (!this._anim) return null;
+    const f  = this._anim.frames[this._frame];
+    if (!f) return null;
+    const fd = getFrame(f.atlas, f.frame);
+    if (!fd) return null;
+    const cx = this.cx !== null ? this.cx : this.canvas.width  / 2;
+    const cy = this.cy !== null ? this.cy : this.canvas.height * 0.42;
+    const w  = fd.naturalW * this.scale;
+    const h  = fd.naturalH * this.scale;
+    return { x: cx - w / 2, y: cy - h / 2, w, h };
+  }
+}
+
+// ── Drawing helpers ───────────────────────────────────────────────────────
+
+/**
+ * Draw a frame so the pivot (0.5, 0.5) of its sourceSize sits at (cx, cy).
+ * The spriteSourceSize offset keeps trimmed frames registered correctly.
+ */
+function _drawAnchored(ctx, fd, cx, cy, scale) {
+  const { image, frame, rotated, naturalW, naturalH, sourceSize } = fd;
+  const dw = naturalW * scale;
+  const dh = naturalH * scale;
+
+  // Horizontal: center on natural content width (small variation, not noticeable)
+  const dx = cx - dw / 2;
+
+  // Vertical: BOTTOM-ANCHORED using max(sourceSize dims) as the fixed floor.
+  // This locks the feet/tail at a constant y position across all frames while
+  // the head breathes naturally upward — eliminating tail cutting and artifacts.
+  // Using max() handles both rotated and non-rotated frames uniformly (rotated
+  // frames swap sourceSize.w and sourceSize.h in their effective canvas).
+  const effectiveH = Math.max(sourceSize.w, sourceSize.h);
+  const cyFloor    = cy + (effectiveH / 2) * scale;
+  const dy         = cyFloor - dh;
+
+  if (!rotated) {
+    ctx.drawImage(image, frame.x, frame.y, frame.w, frame.h, dx, dy, dw, dh);
+    return;
+  }
+
+  ctx.save();
+  ctx.translate(dx + dw / 2, dy + dh / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.drawImage(image, frame.x, frame.y, frame.w, frame.h,
+    -dh / 2, -dw / 2, dh, dw);
+  ctx.restore();
+}
+
+/**
+ * Draw the accessory by stacking its source canvas directly on top of the pet's
+ * source canvas. Both are centered at cx on the x-axis. The accessory source
+ * top aligns with the pet source top, pushing the accessory above the pet body.
+ *
+ * Formula:
+ *   accDy = cy - (petSrcH / 2) * scale   ← top of pet source canvas in screen space
+ *         - (accSrcH / 2) * scale         ← center the acc source canvas above that
+ *         + accSss.y * scale              ← apply the acc's own spriteSourceSize.y
+ */
+function _drawAccessoryAnchored(ctx, afd, petFd, cx, cy, scale, topShift = 0) {
+  // Use the same effectiveH reference as _drawAnchored uses for the floor.
+  const petSrcH = Math.max(petFd.sourceSize.w, petFd.sourceSize.h);
+  const accSrcH = afd.sourceSize.h;
+  const accSrcW = afd.sourceSize.w;
+  const sss     = afd.spriteSourceSize;
+
+  const dw = afd.naturalW * scale;
+  const dh = afd.naturalH * scale;
+  const dx = cx - (accSrcW / 2) * scale + sss.x * scale;
+  const dy = cy
+    - (petSrcH / 2) * scale   // top of pet source canvas
+    - (accSrcH / 2) * scale   // center acc canvas above pet canvas
+    + sss.y * scale            // offset within acc canvas
+    - topShift * scale;        // per-accessory upward nudge
+
+  if (!afd.rotated) {
+    ctx.drawImage(afd.image, afd.frame.x, afd.frame.y, afd.frame.w, afd.frame.h,
+      dx, dy, dw, dh);
+    return;
+  }
+
+  ctx.save();
+  ctx.translate(dx + dw / 2, dy + dh / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.drawImage(afd.image, afd.frame.x, afd.frame.y, afd.frame.w, afd.frame.h,
+    -dh / 2, -dw / 2, dh, dw);
+  ctx.restore();
+}
