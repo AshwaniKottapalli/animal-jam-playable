@@ -31,25 +31,19 @@ export class PetRenderer {
     this._onComplete = onComplete || null;
   }
 
-  /**
-   * Show the accessory as a single static frame (the last/settled frame of the
-   * placement animation). No looping, no animation — just the resting pose.
-   */
   playAccessory(petId, accIndex) {
     const prefix = `${petId}-accessory${accIndex + 1}-`;
     const frames  = getFramesByPrefix(['texture-pet-accessories'], prefix);
-    if (!frames.length) { this._accFrameData = null; return; }
+    if (!frames.length) { this._accAnim = null; return; }
 
-    // Use the last frame — that's the settled/resting position
-    const last = frames[frames.length - 1];
-    this._accFrameData = getFrame(last.atlas, last.frame);
+    // Store all frames so we can sync to the pet's current frame in draw()
+    this._accAnim = frames.map(f => getFrame(f.atlas, f.frame)).filter(Boolean);
 
-    // Per-accessory vertical shift (source-canvas pixels, positive = up)
     const pet = CONFIG.pets.find(p => p.id === petId);
     this._accTopShift = pet?.accessories?.[accIndex]?.topShift ?? 0;
   }
 
-  stopAccessory() { this._accFrameData = null; }
+  stopAccessory() { this._accAnim = null; }
 
   update(dt) {
     if (!this._anim || this.paused) return;
@@ -86,9 +80,12 @@ export class PetRenderer {
     // stay registered to the same pivot point (0.5, 0.5 of sourceSize).
     _drawAnchored(ctx, fd, cx, cy, scale);
 
-    // Draw accessory (static) stacked above the pet's source-canvas space
-    if (this._accFrameData) {
-      _drawAccessoryAnchored(ctx, this._accFrameData, fd, cx, cy, scale, this._accTopShift || 0);
+    // Draw accessory synced to pet's current frame index (proportional remap)
+    if (this._accAnim?.length) {
+      const accIdx = Math.round(this._frame / Math.max(1, this._anim.frames.length - 1)
+        * (this._accAnim.length - 1));
+      const afd = this._accAnim[Math.min(accIdx, this._accAnim.length - 1)];
+      if (afd) _drawAccessoryAnchored(ctx, afd, fd, cx, cy, scale, this._accTopShift || 0);
     }
   }
 
