@@ -1238,8 +1238,14 @@ export class Game {
 
     // 4. Tagline — above the pet, in the scenic sky zone (bigger + readable)
     const petLabel = (CONFIG.pets[this.petIdx]?.label ?? 'Pet').toUpperCase();
-    _drawBrandText(ctx, 'Adopt, Explore, Decorate & Play', CW/2, 338, 34, B.darkBrown, '#ffffff', CONFIG.brand.fontDimbo);
-    _drawBrandText(ctx, `Games with YOUR ${petLabel}!`,    CW/2, 392, 52, B.darkBrown, B.orange);
+    ctx.save();
+    ctx.font = `bold 38px ${CONFIG.brand.fontDimbo}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+    ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 368);
+    ctx.restore();
+    _drawBrandText(ctx, `Games with YOUR ${petLabel}!`, CW/2, 430, 58, B.darkBrown, B.orange);
 
     // 5. Pet on rug (hero)
     this._renderer.draw();
@@ -1525,7 +1531,7 @@ function _drawCTAButton(ctx, x, y, w, h) {
   ctx.fillStyle = gleam;
   _pillPath(ctx, x + 3, y + 3, w - 6, h * 0.44, r - 3); ctx.fill();
 
-  ctx.font = `bold 34px ${CONFIG.brand.font}`;
+  ctx.font = `bold 34px ${CONFIG.brand.fontDimbo}`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.lineWidth = 5; ctx.strokeStyle = '#1a5008';
   ctx.strokeText('Play for Free!', x + w/2, y + h/2 + 1);
