@@ -1194,7 +1194,6 @@ export class Game {
     };
     this._lastCardPastCenter = -1;
 
-    this._showCaption('Your adventure begins!', 1.8);
     this._bgZoom = 1.0; // reset zoom for cta background
   }
 
@@ -1242,17 +1241,12 @@ export class Game {
     // 4. Tagline — above the pet, in the scenic sky zone (bigger + readable)
     const petLabel = (CONFIG.pets[this.petIdx]?.label ?? 'Pet').toUpperCase();
     ctx.save();
-    ctx.font = `bold 50px ${CONFIG.brand.fontDimbo}`;
+    ctx.font = `bold 36px ${CONFIG.brand.fontDimbo}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 320);
+    ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 322);
     ctx.restore();
-    ctx.save();
-    ctx.font = `bold 76px ${CONFIG.brand.fontDimbo}`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = B.darkBrown;
-    ctx.fillText(`Games with YOUR ${petLabel}!`, CW / 2, 398);
-    ctx.restore();
+    _drawBrandText(ctx, `Games with YOUR ${petLabel}!`, CW/2, 392, 58, B.darkBrown, B.orange);
 
     // 5. Pet on rug (hero)
     this._renderer.draw();
