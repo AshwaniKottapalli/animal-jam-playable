@@ -1244,9 +1244,9 @@ export class Game {
     ctx.font = `bold 36px ${CONFIG.brand.fontDimbo}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 322);
+    ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 352);
     ctx.restore();
-    _drawBrandText(ctx, `Games with YOUR ${petLabel}!`, CW/2, 392, 58, B.darkBrown, B.orange);
+    _drawBrandText(ctx, `Games with YOUR ${petLabel}!`, CW/2, 422, 58, B.darkBrown, B.orange);
 
     // 5. Pet on rug (hero)
     this._renderer.draw();
