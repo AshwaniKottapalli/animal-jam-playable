@@ -42,17 +42,27 @@ export function getFrame(atlasName, frameName) {
   if (!f) return null;
 
   const rotated = f.rotated || false;
-
-  // Natural (display) pixel dimensions after un-rotating
-  const naturalW = rotated ? f.frame.h : f.frame.w;
-  const naturalH = rotated ? f.frame.w : f.frame.h;
-
-  // Source canvas and offset (default to no-trim if fields absent)
-  const sourceSize = f.sourceSize || { w: naturalW, h: naturalH };
-  const sss = f.spriteSourceSize || { x: 0, y: 0, w: naturalW, h: naturalH };
-  // spriteSourceSize always describes the ORIGINAL (unrotated) sprite's offset
-  // within its source canvas — do NOT swap x/y for rotated frames.
+  const sourceSize = f.sourceSize || { w: f.frame.w, h: f.frame.h };
+  const sss = f.spriteSourceSize || { x: 0, y: 0, w: f.frame.w, h: f.frame.h };
   const spriteSourceSize = sss;
+
+  // Two TexturePacker conventions exist for rotated frames:
+  //   Standard:      frame.w/h = atlas region dims (transposed from display)
+  //   Original-dims: frame.w/h = display dims (same as sourceSize); atlas region is transposed
+  // Detect by checking if frame dims match sourceSize.
+  let naturalW, naturalH, atlasW, atlasH;
+  if (rotated && f.frame.w === sourceSize.w && f.frame.h === sourceSize.h) {
+    // Original-dims convention: frame reports display size, atlas is transposed
+    naturalW = f.frame.w; naturalH = f.frame.h;
+    atlasW   = f.frame.h; atlasH   = f.frame.w;
+  } else if (rotated) {
+    // Standard convention: frame reports atlas dims, display is transposed
+    naturalW = f.frame.h; naturalH = f.frame.w;
+    atlasW   = f.frame.w; atlasH   = f.frame.h;
+  } else {
+    naturalW = f.frame.w; naturalH = f.frame.h;
+    atlasW   = f.frame.w; atlasH   = f.frame.h;
+  }
 
   return {
     image: atlas.image,
@@ -60,6 +70,8 @@ export function getFrame(atlasName, frameName) {
     rotated,
     naturalW,
     naturalH,
+    atlasW,
+    atlasH,
     sourceSize,
     spriteSourceSize,
   };
@@ -73,7 +85,7 @@ export function getFrame(atlasName, frameName) {
 export function drawFrame(ctx, atlasName, frameName, dx, dy, dw, dh) {
   const data = getFrame(atlasName, frameName);
   if (!data) return;
-  const { image, frame, rotated, naturalW, naturalH } = data;
+  const { image, frame, rotated, naturalW, naturalH, atlasW, atlasH } = data;
 
   const rw = dw ?? naturalW;
   const rh = dh ?? naturalH;
@@ -83,11 +95,12 @@ export function drawFrame(ctx, atlasName, frameName, dx, dy, dw, dh) {
     return;
   }
 
-  // Sprite stored 90° CW — rotate context -90° (CCW) to undo it
+  // Sprite stored 90° CW — rotate context -90° (CCW) to undo it.
+  // Use atlasW/atlasH (actual atlas region dims) for the source crop.
   ctx.save();
   ctx.translate(dx + rw / 2, dy + rh / 2);
   ctx.rotate(-Math.PI / 2);
-  ctx.drawImage(image, frame.x, frame.y, frame.w, frame.h,
+  ctx.drawImage(image, frame.x, frame.y, atlasW, atlasH,
     -rh / 2, -rw / 2, rh, rw);
   ctx.restore();
 }

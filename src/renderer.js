@@ -113,18 +113,12 @@ export class PetRenderer {
  * The spriteSourceSize offset keeps trimmed frames registered correctly.
  */
 function _drawAnchored(ctx, fd, cx, cy, scale) {
-  const { image, frame, rotated, naturalW, naturalH, sourceSize } = fd;
+  const { image, frame, rotated, naturalW, naturalH, atlasW, atlasH, sourceSize } = fd;
   const dw = naturalW * scale;
   const dh = naturalH * scale;
 
-  // Horizontal: center on natural content width (small variation, not noticeable)
   const dx = cx - dw / 2;
 
-  // Vertical: BOTTOM-ANCHORED using max(sourceSize dims) as the fixed floor.
-  // This locks the feet/tail at a constant y position across all frames while
-  // the head breathes naturally upward — eliminating tail cutting and artifacts.
-  // Using max() handles both rotated and non-rotated frames uniformly (rotated
-  // frames swap sourceSize.w and sourceSize.h in their effective canvas).
   const effectiveH = Math.max(sourceSize.w, sourceSize.h);
   const cyFloor    = cy + (effectiveH / 2) * scale;
   const dy         = cyFloor - dh;
@@ -137,7 +131,7 @@ function _drawAnchored(ctx, fd, cx, cy, scale) {
   ctx.save();
   ctx.translate(dx + dw / 2, dy + dh / 2);
   ctx.rotate(-Math.PI / 2);
-  ctx.drawImage(image, frame.x, frame.y, frame.w, frame.h,
+  ctx.drawImage(image, frame.x, frame.y, atlasW, atlasH,
     -dh / 2, -dw / 2, dh, dw);
   ctx.restore();
 }
@@ -177,7 +171,7 @@ function _drawAccessoryAnchored(ctx, afd, petFd, cx, cy, scale, topShift = 0) {
   ctx.save();
   ctx.translate(dx + dw / 2, dy + dh / 2);
   ctx.rotate(-Math.PI / 2);
-  ctx.drawImage(afd.image, afd.frame.x, afd.frame.y, afd.frame.w, afd.frame.h,
+  ctx.drawImage(afd.image, afd.frame.x, afd.frame.y, afd.atlasW, afd.atlasH,
     -dh / 2, -dw / 2, dh, dw);
   ctx.restore();
 }
