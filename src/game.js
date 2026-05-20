@@ -1537,8 +1537,6 @@ function _drawCTAButton(ctx, x, y, w, h) {
 
   ctx.font = `bold 34px ${CONFIG.brand.fontDimbo}`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.lineWidth = 5; ctx.strokeStyle = '#1a5008';
-  ctx.strokeText('Play for Free!', x + w/2, y + h/2 + 1);
   ctx.fillStyle = '#ffffff';
   ctx.fillText('Play for Free!', x + w/2, y + h/2 + 1);
   ctx.restore();
