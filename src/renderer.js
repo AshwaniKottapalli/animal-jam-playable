@@ -80,12 +80,12 @@ export class PetRenderer {
     // stay registered to the same pivot point (0.5, 0.5 of sourceSize).
     _drawAnchored(ctx, fd, cx, cy, scale);
 
-    // Draw accessory synced to pet's current frame index (proportional remap)
+    // Draw accessory: use settled last frame, nudge vertically by the pet
+    // frame's own sss.y so the accessory tracks the head's idle micro-movement.
     if (this._accAnim?.length) {
-      const accIdx = Math.round(this._frame / Math.max(1, this._anim.frames.length - 1)
-        * (this._accAnim.length - 1));
-      const afd = this._accAnim[Math.min(accIdx, this._accAnim.length - 1)];
-      if (afd) _drawAccessoryAnchored(ctx, afd, fd, cx, cy, scale, this._accTopShift || 0);
+      const afd = this._accAnim[this._accAnim.length - 1];
+      const petSssY = fd.spriteSourceSize?.y ?? 0;
+      if (afd) _drawAccessoryAnchored(ctx, afd, fd, cx, cy, scale, this._accTopShift || 0, petSssY * scale);
     }
   }
 
@@ -143,8 +143,7 @@ function _drawAnchored(ctx, fd, cx, cy, scale) {
  *         - (accSrcH / 2) * scale         ← center the acc source canvas above that
  *         + accSss.y * scale              ← apply the acc's own spriteSourceSize.y
  */
-function _drawAccessoryAnchored(ctx, afd, petFd, cx, cy, scale, topShift = 0) {
-  // Use the same effectiveH reference as _drawAnchored uses for the floor.
+function _drawAccessoryAnchored(ctx, afd, petFd, cx, cy, scale, topShift = 0, petSssYOffset = 0) {
   const petSrcH = Math.max(petFd.sourceSize.w, petFd.sourceSize.h);
   const accSrcH = afd.sourceSize.h;
   const accSrcW = afd.sourceSize.w;
@@ -154,10 +153,11 @@ function _drawAccessoryAnchored(ctx, afd, petFd, cx, cy, scale, topShift = 0) {
   const dh = afd.naturalH * scale;
   const dx = cx - (accSrcW / 2) * scale + sss.x * scale;
   const dy = cy
-    - (petSrcH / 2) * scale   // top of pet source canvas
-    - (accSrcH / 2) * scale   // center acc canvas above pet canvas
-    + sss.y * scale            // offset within acc canvas
-    - topShift * scale;        // per-accessory upward nudge
+    - (petSrcH / 2) * scale
+    - (accSrcH / 2) * scale
+    + sss.y * scale
+    - topShift * scale
+    + petSssYOffset;           // tracks pet head's vertical idle movement
 
   if (!afd.rotated) {
     ctx.drawImage(afd.image, afd.frame.x, afd.frame.y, afd.frame.w, afd.frame.h,
