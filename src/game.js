@@ -1239,13 +1239,13 @@ export class Game {
     // 4. Tagline — above the pet, in the scenic sky zone (bigger + readable)
     const petLabel = (CONFIG.pets[this.petIdx]?.label ?? 'Pet').toUpperCase();
     ctx.save();
-    ctx.font = `bold 38px ${CONFIG.brand.fontDimbo}`;
+    ctx.font = `bold 50px ${CONFIG.brand.fontDimbo}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
-    ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 368);
+    ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 420);
     ctx.restore();
-    _drawBrandText(ctx, `Games with YOUR ${petLabel}!`, CW/2, 430, 58, B.darkBrown, B.orange);
+    _drawBrandText(ctx, `Games with YOUR ${petLabel}!`, CW/2, 498, 76, B.darkBrown, B.orange);
 
     // 5. Pet on rug (hero)
     this._renderer.draw();
