@@ -186,22 +186,25 @@ export class Game {
 
     this._show(buildLoadingScreen());
 
-    for (let i = 0; i < atlasNames.length; i++) {
-      await loadAtlas(atlasNames[i]);
-      setLoadingProgress((i + 1) / atlasNames.length);
-    }
+    // Load all atlases + images in parallel; update progress bar as each resolves
+    const imgAssets = [
+      'assets/texture-backgrounds-1.jpeg',
+      'assets/texture-backgrounds-2.jpeg',
+      'assets/ui/logotype.png',
+      'assets/generated/boxSprite_fixed.png',
+      ...CONFIG.gameCards.map(c => c.image),
+    ];
+    const total = atlasNames.length + imgAssets.length;
+    let done = 0;
+    const tick = () => setLoadingProgress(++done / total);
 
-    [this._bgImg, this._bgCtaImg, this._logoImg, this._boxSpriteImg] = await Promise.all([
-      loadImg('assets/texture-backgrounds-1.jpeg'),
-      loadImg('assets/texture-backgrounds-2.jpeg'),
-      loadImg('assets/ui/logotype.png'),
-      loadImg('assets/generated/boxSprite_fixed.png'),
+    const [atlasResults, imgResults] = await Promise.all([
+      Promise.all(atlasNames.map(n => loadAtlas(n).then(r => { tick(); return r; }))),
+      Promise.all(imgAssets.map(u => loadImg(u).catch(() => null).then(r => { tick(); return r; }))),
     ]);
 
-    // Load game card images (non-blocking — fall back to colored card if missing)
-    this._gameImgs = await Promise.all(
-      CONFIG.gameCards.map(card => loadImg(card.image).catch(() => null))
-    );
+    [this._bgImg, this._bgCtaImg, this._logoImg, this._boxSpriteImg] = imgResults;
+    this._gameImgs = imgResults.slice(4);
 
     Object.entries(CONFIG.audio).forEach(([n, u]) => Audio.loadFile(n, u).catch(() => {}));
     CONFIG.pets.forEach((p, i) => Audio.loadFile(`pet-${i + 1}`, p.sound).catch(() => {}));
