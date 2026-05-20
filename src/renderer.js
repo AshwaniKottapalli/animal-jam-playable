@@ -85,7 +85,8 @@ export class PetRenderer {
     if (this._accAnim?.length) {
       const afd = this._accAnim[this._accAnim.length - 1];
       const petSssY = fd.spriteSourceSize?.y ?? 0;
-      if (afd) _drawAccessoryAnchored(ctx, afd, fd, cx, cy, scale, this._accTopShift || 0, petSssY * scale);
+      const petSssX = fd.spriteSourceSize?.x ?? 0;
+      if (afd) _drawAccessoryAnchored(ctx, afd, fd, cx, cy, scale, this._accTopShift || 0, petSssY * scale, petSssX * scale);
     }
   }
 
@@ -143,7 +144,7 @@ function _drawAnchored(ctx, fd, cx, cy, scale) {
  *         - (accSrcH / 2) * scale         ← center the acc source canvas above that
  *         + accSss.y * scale              ← apply the acc's own spriteSourceSize.y
  */
-function _drawAccessoryAnchored(ctx, afd, petFd, cx, cy, scale, topShift = 0, petSssYOffset = 0) {
+function _drawAccessoryAnchored(ctx, afd, petFd, cx, cy, scale, topShift = 0, petSssYOffset = 0, petSssXOffset = 0) {
   const petSrcH = Math.max(petFd.sourceSize.w, petFd.sourceSize.h);
   const accSrcH = afd.sourceSize.h;
   const accSrcW = afd.sourceSize.w;
@@ -151,13 +152,13 @@ function _drawAccessoryAnchored(ctx, afd, petFd, cx, cy, scale, topShift = 0, pe
 
   const dw = afd.naturalW * scale;
   const dh = afd.naturalH * scale;
-  const dx = cx - (accSrcW / 2) * scale + sss.x * scale;
+  const dx = cx - (accSrcW / 2) * scale + sss.x * scale + petSssXOffset;
   const dy = cy
     - (petSrcH / 2) * scale
     - (accSrcH / 2) * scale
     + sss.y * scale
     - topShift * scale
-    + petSssYOffset;           // tracks pet head's vertical idle movement
+    + petSssYOffset;
 
   if (!afd.rotated) {
     ctx.drawImage(afd.image, afd.frame.x, afd.frame.y, afd.frame.w, afd.frame.h,
