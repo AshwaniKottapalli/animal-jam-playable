@@ -1245,10 +1245,10 @@ export class Game {
     ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 420);
     ctx.restore();
     ctx.save();
-    ctx.font = `bold 76px ${CONFIG.brand.font}`;
+    ctx.font = `bold 76px ${CONFIG.brand.fontDimbo}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = B.orange;
-    ctx.fillText(`Games with YOUR ${petLabel}!`, CW/2, 498);
+    ctx.fillText(`Games with YOUR ${petLabel}!`, CW / 2, 498);
     ctx.restore();
 
     // 5. Pet on rug (hero)
