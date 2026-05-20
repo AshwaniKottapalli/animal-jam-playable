@@ -1242,13 +1242,13 @@ export class Game {
     ctx.font = `bold 50px ${CONFIG.brand.fontDimbo}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 420);
+    ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 385);
     ctx.restore();
     ctx.save();
     ctx.font = `bold 76px ${CONFIG.brand.fontDimbo}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = B.orange;
-    ctx.fillText(`Games with YOUR ${petLabel}!`, CW / 2, 498);
+    ctx.fillText(`Games with YOUR ${petLabel}!`, CW / 2, 463);
     ctx.restore();
 
     // 5. Pet on rug (hero)
