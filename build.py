@@ -37,12 +37,8 @@ for dirpath, _, files in os.walk(ROOT):
             continue
         with open(full, 'rb') as f:
             data = f.read()
-        if ext == '.json':
-            # Inline JSON as text, not base64 (smaller)
-            assets[rel] = 'data:application/json;charset=utf-8,' + data.decode('utf-8').replace('\n','').replace(' ','')
-        else:
-            b64 = base64.b64encode(data).decode('ascii')
-            assets[rel] = f'data:{mime(full)};base64,{b64}'
+        b64 = base64.b64encode(data).decode('ascii')
+        assets[rel] = f'data:{mime(full)};base64,{b64}'
         print(f'  {rel}: {len(data)//1024}KB → data URL')
 
 # ── 2. Bundle JS modules (topological order) ─────────────────────────────────
@@ -89,7 +85,7 @@ patch_js = r"""
       if (ak === k || ak.endsWith('/'+k.split('/').pop()) && ak.includes(k.split('/').slice(-2).join('/'))) {
         const d = __A[ak];
         if (d.startsWith('data:application/json')) {
-          const text = d.includes(';base64,') ? atob(d.split(',')[1]) : decodeURIComponent(d.split(',')[1]);
+          const text = atob(d.split(';base64,')[1]);
           return Promise.resolve(new Response(text, {status:200,headers:{'Content-Type':'application/json'}}));
         }
         return _fetch(d, opts);
