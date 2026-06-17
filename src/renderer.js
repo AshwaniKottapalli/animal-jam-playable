@@ -118,7 +118,10 @@ function _drawAnchored(ctx, fd, cx, cy, scale) {
   const dw = naturalW * scale;
   const dh = naturalH * scale;
 
-  const dx = cx - dw / 2;
+  // Anchor horizontally to sourceSize.w so content always sits at the same
+  // position within the logical canvas — eliminates frame.w trim variation drift.
+  const sss = fd.spriteSourceSize;
+  const dx = cx - (sourceSize.w / 2) * scale + sss.x * scale;
 
   const effectiveH = sourceSize.h;
   const cyFloor    = cy + (effectiveH / 2) * scale;
