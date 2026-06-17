@@ -1290,7 +1290,7 @@ export class Game {
     if (isLct) {
       // Landscape: game grid right, button left column
       if (x >= 860 && y >= 255 && y <= 560) { this._doInstall(); return; }
-      if (x >= 80 && x <= 460 && y >= 440 && y <= 512) { this._doInstall(); return; }
+      if (x >= 82 && x <= 462 && y >= 358 && y <= 426) { this._doInstall(); return; }
     } else {
       if (y >= 840 && y <= 1120) { this._doInstall(); return; }
       if (x >= CW/2 - 210 && x <= CW/2 + 210 && y >= 1135 && y <= 1205) { this._doInstall(); return; }
@@ -1329,52 +1329,53 @@ export class Game {
       // Layout: LEFT col (text) | CENTER (pet) | RIGHT col (game grid)
       // Button: bottom-center, large + prominent
 
-      // Logo — y=80 clears COVER top-clip on narrow-viewport browsers
+      // ── LEFT COLUMN — evenly spaced, consistent 18px gaps ──────────────────
+      // Logo: y=82, h=118 → bottom=200
       if (this._logoImg) {
         ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 14;
-        ctx.drawImage(this._logoImg, 80, 80, 200, 140);
+        ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 10;
+        ctx.drawImage(this._logoImg, 82, 82, 180, 118);
         ctx.restore();
       }
-
-      // Badge — below logo
-      _drawSocialProofBadge(ctx, 180, 236);
-
-      // Tagline — left column
+      // Badge: top=218 (18px gap after logo)
+      _drawSocialProofBadge(ctx, 162, 232);
+      // Tagline 1: y=266 (18px gap after badge bottom ≈248)
       ctx.save();
-      ctx.font = `bold 24px ${CONFIG.brand.fontDimbo}`;
+      ctx.font = `bold 22px ${CONFIG.brand.fontDimbo}`;
       ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
       ctx.lineWidth = 3; ctx.strokeStyle = B.darkBrown; ctx.lineJoin = 'round';
-      ctx.strokeText('Adopt, Explore, Decorate & Play', 82, 278);
+      ctx.strokeText('Adopt, Explore, Decorate & Play', 82, 266);
       ctx.fillStyle = '#ffffff';
-      ctx.fillText('Adopt, Explore, Decorate & Play', 82, 278);
+      ctx.fillText('Adopt, Explore, Decorate & Play', 82, 266);
       ctx.restore();
+      // Tagline 2: y=302 (36px gap = line height)
       ctx.save();
-      ctx.font = `bold 36px ${CONFIG.brand.fontDimbo}`;
+      ctx.font = `bold 32px ${CONFIG.brand.fontDimbo}`;
       ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
       ctx.fillStyle = B.darkBrown;
-      ctx.fillText(`Games with YOUR ${petLabel}!`, 82, 320);
+      ctx.fillText(`Games with YOUR ${petLabel}!`, 82, 304);
       ctx.restore();
 
       // Pet — centered
       this._renderer.draw();
 
-      // 3×2 game icon grid — right column
-      const ICN_L = 118, ICN_GAP_L = 12, COLS_L = 3;
+      // 3×2 game icon grid — right column (vertically centered)
+      const ICN_L = 118, ICN_GAP_L = 14, COLS_L = 3;
       const gridW_L = COLS_L * ICN_L + (COLS_L - 1) * ICN_GAP_L;
       const gridX_L = CW - gridW_L - 30;
+      const gridY_L = (CH - (2 * ICN_L + ICN_GAP_L)) / 2;
       for (let row = 0; row < 2; row++) {
         for (let col = 0; col < COLS_L; col++) {
           const idx = row * COLS_L + col;
           const img = this._gameImgs?.[idx];
           const ix  = gridX_L + col * (ICN_L + ICN_GAP_L);
-          const iy  = 260 + row * (ICN_L + ICN_GAP_L);
+          const iy  = gridY_L + row * (ICN_L + ICN_GAP_L);
           _drawGameIconMini(ctx, img, ix, iy, ICN_L);
         }
       }
 
-      // Play for Free! — left column, prominent, well within canvas
-      const btnW = 380, btnX = 80, btnY = 440, btnH = 72;
+      // Play for Free! — left column, y=358 (18px gap after tagline 2 bottom≈320+16=336+18=354)
+      const btnW = 380, btnX = 82, btnY = 358, btnH = 68;
       const pulse_l = 1 + Math.sin(this._ctaElapsed * 3.5) * 0.04;
       ctx.save();
       ctx.translate(btnX + btnW/2, btnY + btnH/2); ctx.scale(pulse_l, pulse_l); ctx.translate(-(btnX + btnW/2), -(btnY + btnH/2));
