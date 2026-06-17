@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Frame Mapper</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111; color: #eee; font-family: monospace; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    #toolbar {
+      display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+      background: #1a1a2e; border-bottom: 1px solid #333; flex-shrink: 0;
+    }
+    #toolbar h2 { color: #f7941d; font-size: 13px; letter-spacing: 1px; margin-right: 8px; }
+    select { background: #222; color: #eee; border: 1px solid #444; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; }
+    label { font-size: 12px; color: #aaa; }
+    button { background: #f7941d; color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
+    button.secondary { background: #333; color: #eee; }
+    button:hover { opacity: 0.85; }
+    #status { font-size: 11px; color: #f7941d; margin-left: auto; }
+
+    #main { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Filmstrips ── */
+    #strips { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 12px; gap: 12px; }
+
+    .strip-section { display: flex; flex-direction: column; gap: 6px; }
+    .strip-label { font-size: 11px; color: #888; letter-spacing: 1px; text-transform: uppercase; }
+
+    .filmstrip { display: flex; gap: 4px; overflow-x: auto; padding: 4px 0; flex-shrink: 0; }
+    .filmstrip::-webkit-scrollbar { height: 4px; }
+    .filmstrip::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+
+    .frame-thumb {
+      flex-shrink: 0; cursor: pointer; border-radius: 4px; overflow: hidden;
+      border: 2px solid transparent; position: relative;
+      transition: border-color 0.1s;
+    }
+    .frame-thumb canvas { display: block; }
+    .frame-thumb .idx { position: absolute; bottom: 0; left: 0; right: 0;
+      font-size: 9px; text-align: center; background: rgba(0,0,0,0.6); padding: 1px 0; }
+    .frame-thumb .sssy { position: absolute; top: 0; right: 0;
+      font-size: 8px; background: rgba(0,0,0,0.7); padding: 1px 3px; color: #aaa; }
+    .frame-thumb.selected-pet  { border-color: #f7941d; }
+    .frame-thumb.mapped-acc    { border-color: #5db33b; }
+    .frame-thumb.active-acc    { border-color: #7ee787; box-shadow: 0 0 6px #7ee787; }
+
+    /* mapping indicators on pet frames */
+    .frame-thumb .map-badge {
+      position: absolute; top: 0; left: 0;
+      font-size: 9px; background: #5db33b; color: #000;
+      padding: 1px 3px; border-radius: 0 0 3px 0; font-weight: bold;
+    }
+
+    /* ── Preview ── */
+    #preview-panel {
+      width: 260px; flex-shrink: 0; border-left: 1px solid #333;
+      display: flex; flex-direction: column; padding: 12px; gap: 10px;
+    }
+    #preview-panel h3 { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    #previewCanvas { border: 1px solid #333; border-radius: 4px; display: block; width: 100%; }
+
+    #output-box {
+      flex: 1; background: #0d1117; border: 1px solid #333; border-radius: 4px;
+      padding: 8px; font-size: 10px; color: #7ee787; overflow-y: auto;
+      white-space: pre; line-height: 1.6;
+    }
+
+    .instructions {
+      font-size: 11px; color: #666; line-height: 1.6;
+    }
+    .instructions b { color: #f7941d; }
+  </style>
+</head>
+<body>
+
+<div id="toolbar">
+  <h2>FRAME MAPPER</h2>
+  <label>Pet</label>
+  <select id="selPet">
+    <option value="0">Cow</option>
+    <option value="1">Fennec (Fox)</option>
+    <option value="2">Seal</option>
+  </select>
+  <label>Variant</label>
+  <select id="selVariant">
+    <option value="0">Natural (idle-1)</option>
+    <option value="1">Brown (idle-2)</option>
+    <option value="2">Red (idle-3)</option>
+  </select>
+  <label>Accessory</label>
+  <select id="selAcc">
+    <option value="0">Acc 1</option>
+    <option value="1">Acc 2</option>
+    <option value="2">Acc 3</option>
+  </select>
+  <button onclick="resetMap()">Reset Map</button>
+  <button class="secondary" onclick="fillMap()">Auto-fill (settled)</button>
+  <span id="status">Click a pet frame, then an accessory frame to map it</span>
+</div>
+
+<div id="main">
+  <div id="strips">
+    <div class="strip-section">
+      <div class="strip-label">Pet idle frames — click to select</div>
+      <div class="filmstrip" id="petStrip"></div>
+    </div>
+    <div class="strip-section">
+      <div class="strip-label">Accessory frames — click to assign to selected pet frame | green = currently mapped</div>
+      <div class="filmstrip" id="accStrip"></div>
+    </div>
+    <div class="instructions">
+      <b>How to use:</b> Click a pet frame (orange border = selected). Then click the accessory frame that best matches. Repeat for all pet frames. Use <b>Auto-fill</b> to pre-fill with the settled resting frame, then only adjust the frames where the head moves.
+    </div>
+  </div>
+
+  <div id="preview-panel">
+    <h3>Live Preview</h3>
+    <canvas id="previewCanvas" width="236" height="420"></canvas>
+    <div id="output-box">// select pet + accessory\n// to see output</div>
+    <button onclick="copyOutput()" style="width:100%">Copy Output</button>
+  </div>
+</div>
+
+<script type="module">
+import { loadAtlas, getFrame, getFramesByPrefix } from './src/atlas.js';
+import { CONFIG } from './src/config.js';
+
+const THUMB_H = 80;
+
+const state = {
+  petIdx: 0, variantIdx: 0, accIdx: 0,
+  selectedPetFrame: 0,
+  // frameMaps[petIdx][variantIdx][accIdx] = [accFrameIdx, ...] per pet idle frame
+  frameMaps: {},
+};
+
+// Initialize all frame maps to null (unset)
+CONFIG.pets.forEach((_, pi) => {
+  state.frameMaps[pi] = {};
+  [0,1,2].forEach(vi => {
+    state.frameMaps[pi][vi] = {};
+    [0,1,2].forEach(ai => { state.frameMaps[pi][vi][ai] = null; });
+  });
+});
+
+let petFrameData = [];   // [{atlas, frame, fd}, ...]
+let accFrameData = [];   // [{atlas, frame, fd}, ...]
+let bgImg = null;
+let animFrame = 0, animElapsed = 0, lastTs = null;
+
+const bg = new Image();
+bg.onload = () => { bgImg = bg; };
+bg.src = './assets/texture-backgrounds-1.jpeg';
+
+// ── Load + render ──────────────────────────────────────────────────────────
+
+async function load() {
+  const pet = CONFIG.pets[state.petIdx];
+  await Promise.all([
+    ...pet.atlases.map(a => loadAtlas(a)),
+    loadAtlas('texture-pet-accessories'),
+  ]);
+  buildFrameLists();
+  ensureMap();
+  renderStrips();
+  requestAnimationFrame(loop);
+}
+
+function buildFrameLists() {
+  const pet = CONFIG.pets[state.petIdx];
+  const variant = state.variantIdx + 1;
+  const accN = state.accIdx + 1;
+
+  petFrameData = getFramesByPrefix(pet.atlases, `${pet.id}-idle-${variant}-`)
+    .map(f => ({ ...f, fd: getFrame(f.atlas, f.frame) }))
+    .filter(f => f.fd);
+
+  accFrameData = getFramesByPrefix(['texture-pet-accessories'], `${pet.id}-accessory${accN}-`)
+    .map(f => ({ ...f, fd: getFrame(f.atlas, f.frame) }))
+    .filter(f => f.fd);
+
+  // Update acc dropdown labels
+  const pet2 = CONFIG.pets[state.petIdx];
+  document.getElementById('selAcc').options[0].text = `Acc 1 – ${pet2.accessories[0].label}`;
+  document.getElementById('selAcc').options[1].text = `Acc 2 – ${pet2.accessories[1].label}`;
+  document.getElementById('selAcc').options[2].text = `Acc 3 – ${pet2.accessories[2].label}`;
+}
+
+function ensureMap() {
+  const pi = state.petIdx, vi = state.variantIdx, ai = state.accIdx;
+  if (!state.frameMaps[pi][vi][ai]) {
+    // Default: all frames map to best settled accessory frame
+    const bestSettled = findSettledFrame();
+    state.frameMaps[pi][vi][ai] = petFrameData.map(() => bestSettled);
+  }
+}
+
+function findSettledFrame() {
+  if (!accFrameData.length) return 0;
+  // Find frame with highest sss.y (most settled/resting position)
+  let best = 0, bestY = -1;
+  accFrameData.forEach((f, i) => {
+    const y = f.fd.spriteSourceSize?.y ?? 0;
+    if (y > bestY) { bestY = y; best = i; }
+  });
+  return best;
+}
+
+// ── Thumbnail rendering ────────────────────────────────────────────────────
+
+function renderFrameToCanvas(fd, targetCanvas) {
+  const ctx = targetCanvas.getContext('2d');
+  const scale = THUMB_H / Math.max(fd.naturalW, fd.naturalH);
+  const dw = fd.naturalW * scale;
+  const dh = fd.naturalH * scale;
+  const dx = (targetCanvas.width - dw) / 2;
+  const dy = (targetCanvas.height - dh) / 2;
+
+  ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, targetCanvas.width, targetCanvas.height);
+
+  const { image, frame, rotated, atlasW, atlasH } = fd;
+  if (!rotated) {
+    ctx.drawImage(image, frame.x, frame.y, frame.w, frame.h, dx, dy, dw, dh);
+  } else {
+    ctx.save();
+    ctx.translate(dx + dw/2, dy + dh/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.drawImage(image, frame.x, frame.y, atlasW, atlasH, -dh/2, -dw/2, dh, dw);
+    ctx.restore();
+  }
+}
+
+function renderStrips() {
+  const map = state.frameMaps[state.petIdx][state.variantIdx][state.accIdx];
+
+  // Pet strip
+  const petStrip = document.getElementById('petStrip');
+  petStrip.innerHTML = '';
+  petFrameData.forEach((f, i) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'frame-thumb' + (i === state.selectedPetFrame ? ' selected-pet' : '');
+
+    const c = document.createElement('canvas');
+    c.width = THUMB_H; c.height = THUMB_H;
+    renderFrameToCanvas(f.fd, c);
+
+    const idx = document.createElement('div');
+    idx.className = 'idx'; idx.textContent = i;
+
+    const badge = document.createElement('div');
+    badge.className = 'map-badge';
+    badge.textContent = map ? map[i] : '?';
+
+    wrapper.appendChild(c);
+    wrapper.appendChild(idx);
+    wrapper.appendChild(badge);
+    wrapper.addEventListener('click', () => selectPetFrame(i));
+    petStrip.appendChild(wrapper);
+  });
+
+  // Acc strip
+  const accStrip = document.getElementById('accStrip');
+  accStrip.innerHTML = '';
+  accFrameData.forEach((f, i) => {
+    const wrapper = document.createElement('div');
+    const isMapped = map && map.includes(i);
+    const isActive = map && map[state.selectedPetFrame] === i;
+    wrapper.className = 'frame-thumb' + (isActive ? ' active-acc' : isMapped ? ' mapped-acc' : '');
+
+    const c = document.createElement('canvas');
+    c.width = THUMB_H; c.height = THUMB_H;
+    renderFrameToCanvas(f.fd, c);
+
+    const idx = document.createElement('div');
+    idx.className = 'idx'; idx.textContent = i;
+
+    const sssy = document.createElement('div');
+    sssy.className = 'sssy';
+    sssy.textContent = `y:${f.fd.spriteSourceSize?.y ?? 0}`;
+
+    wrapper.appendChild(c);
+    wrapper.appendChild(idx);
+    wrapper.appendChild(sssy);
+    wrapper.addEventListener('click', () => assignAccFrame(i));
+    accStrip.appendChild(wrapper);
+  });
+
+  updateOutput();
+}
+
+function selectPetFrame(i) {
+  state.selectedPetFrame = i;
+  document.getElementById('status').textContent = `Pet frame ${i} selected — click an accessory frame to map`;
+  renderStrips();
+}
+
+function assignAccFrame(accI) {
+  const pi = state.petIdx, vi = state.variantIdx, ai = state.accIdx;
+  const map = state.frameMaps[pi][vi][ai];
+  map[state.selectedPetFrame] = accI;
+  // Advance to next pet frame automatically
+  if (state.selectedPetFrame < petFrameData.length - 1) {
+    state.selectedPetFrame++;
+    document.getElementById('status').textContent =
+      `Mapped → acc frame ${accI}. Now select pet frame ${state.selectedPetFrame}`;
+  } else {
+    document.getElementById('status').textContent = `All ${petFrameData.length} frames mapped!`;
+  }
+  renderStrips();
+}
+
+function resetMap() {
+  const pi = state.petIdx, vi = state.variantIdx, ai = state.accIdx;
+  state.frameMaps[pi][vi][ai] = petFrameData.map(() => 0);
+  state.selectedPetFrame = 0;
+  renderStrips();
+}
+
+function fillMap() {
+  const pi = state.petIdx, vi = state.variantIdx, ai = state.accIdx;
+  const best = findSettledFrame();
+  state.frameMaps[pi][vi][ai] = petFrameData.map(() => best);
+  renderStrips();
+}
+
+// ── Live preview ───────────────────────────────────────────────────────────
+
+const previewCanvas = document.getElementById('previewCanvas');
+const pCtx = previewCanvas.getContext('2d');
+const PCW = 236, PCH = 420;
+
+function loop(ts) {
+  requestAnimationFrame(loop);
+  const dt = Math.min((lastTs ? ts - lastTs : 0) / 1000, 0.08);
+  lastTs = ts;
+  animElapsed += dt;
+  const fps = CONFIG.anim.idleFps;
+  if (animElapsed >= 1/fps) {
+    animElapsed -= 1/fps;
+    animFrame = (animFrame + 1) % Math.max(1, petFrameData.length);
+  }
+  drawPreview();
+}
+
+function drawPreview() {
+  pCtx.clearRect(0, 0, PCW, PCH);
+  if (bgImg) pCtx.drawImage(bgImg, 0, 0, PCW, PCH);
+
+  if (!petFrameData.length) return;
+
+  const cx = PCW / 2, cy = PCH * 0.58, scale = 2.0;
+  const pf = petFrameData[animFrame];
+  if (!pf?.fd) return;
+
+  drawAnchoredPreview(pCtx, pf.fd, cx, cy, scale);
+
+  // Accessory using frame map
+  const map = state.frameMaps[state.petIdx]?.[state.variantIdx]?.[state.accIdx];
+  if (map && accFrameData.length) {
+    const accI = map[animFrame] ?? 0;
+    const af = accFrameData[Math.min(accI, accFrameData.length - 1)];
+    if (af?.fd) {
+      const pet = CONFIG.pets[state.petIdx];
+      const acc = pet.accessories[state.accIdx];
+      const vi = state.variantIdx;
+      const headOffset  = pet.headOffsets?.[vi] ?? 0;
+      const topShift    = Array.isArray(acc.topShift)  ? acc.topShift[vi]  : (acc.topShift  ?? 0);
+      const sideShift   = Array.isArray(acc.sideShift) ? acc.sideShift[vi] : (acc.sideShift ?? 0);
+      const petSssY = pf.fd.spriteSourceSize?.y ?? 0;
+      const petSssX = pf.fd.spriteSourceSize?.x ?? 0;
+      drawAccPreview(pCtx, af.fd, pf.fd, cx, cy, scale, headOffset, topShift, petSssY * scale, -petSssX * scale, sideShift);
+    }
+  }
+
+  // Frame counter
+  pCtx.fillStyle = 'rgba(247,148,29,0.8)'; pCtx.font = '9px monospace';
+  pCtx.textAlign = 'left';
+  const mapIdx = map ? (map[animFrame] ?? '?') : '?';
+  pCtx.fillText(`pet:${animFrame} → acc:${mapIdx}`, 4, 12);
+}
+
+function drawAnchoredPreview(ctx, fd, cx, cy, scale) {
+  const { image, frame, rotated, naturalW, naturalH, atlasW, atlasH, sourceSize } = fd;
+  const dw = naturalW * scale, dh = naturalH * scale;
+  const dx = cx - dw/2;
+  const cyFloor = cy + (sourceSize.h / 2) * scale;
+  const dy = cyFloor - dh;
+  if (!rotated) {
+    ctx.drawImage(image, frame.x, frame.y, frame.w, frame.h, dx, dy, dw, dh);
+  } else {
+    ctx.save();
+    ctx.translate(dx + dw/2, dy + dh/2); ctx.rotate(-Math.PI/2);
+    ctx.drawImage(image, frame.x, frame.y, atlasW, atlasH, -dh/2, -dw/2, dh, dw);
+    ctx.restore();
+  }
+}
+
+function drawAccPreview(ctx, afd, petFd, cx, cy, scale, headOffset, topShift, petSssYOffset, petSssXOffset, sideShift) {
+  const petSrcH = petFd.sourceSize.h;
+  const { naturalW, naturalH, atlasW, atlasH, sourceSize: accSrc, spriteSourceSize: sss } = afd;
+  const dw = naturalW * scale, dh = naturalH * scale;
+  const dx = cx - (accSrc.w/2)*scale + sss.x*scale + petSssXOffset + sideShift*scale;
+  const dy = cy - (petSrcH/2)*scale + headOffset*scale - (accSrc.h/2)*scale + sss.y*scale - topShift*scale + petSssYOffset;
+  if (!afd.rotated) {
+    ctx.drawImage(afd.image, afd.frame.x, afd.frame.y, afd.frame.w, afd.frame.h, dx, dy, dw, dh);
+  } else {
+    ctx.save();
+    ctx.translate(dx+dw/2, dy+dh/2); ctx.rotate(-Math.PI/2);
+    ctx.drawImage(afd.image, afd.frame.x, afd.frame.y, atlasW, atlasH, -dh/2, -dw/2, dh, dw);
+    ctx.restore();
+  }
+}
+
+// ── Output ─────────────────────────────────────────────────────────────────
+
+function updateOutput() {
+  let out = '// Frame maps — paste to Claude\n\n';
+  CONFIG.pets.forEach((pet, pi) => {
+    out += `${pet.id}:\n`;
+    [0,1,2].forEach(vi => {
+      const vname = ['natural','brown','red'][vi];
+      [0,1,2].forEach(ai => {
+        const map = state.frameMaps[pi]?.[vi]?.[ai];
+        if (map) {
+          out += `  idle-${vi+1}(${vname}) + ${pet.accessories[ai].label}: [${map.join(',')}]\n`;
+        }
+      });
+    });
+    out += '\n';
+  });
+  document.getElementById('output-box').textContent = out;
+}
+
+window.copyOutput = () => {
+  navigator.clipboard.writeText(document.getElementById('output-box').textContent);
+  const btn = document.querySelector('button[onclick="copyOutput()"]');
+  btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy Output', 1500);
+};
+
+window.resetMap = resetMap;
+window.fillMap  = fillMap;
+
+// ── Controls ───────────────────────────────────────────────────────────────
+
+async function reload() {
+  const pet = CONFIG.pets[state.petIdx];
+  await Promise.all([...pet.atlases.map(a => loadAtlas(a)), loadAtlas('texture-pet-accessories')]);
+  buildFrameLists();
+  ensureMap();
+  state.selectedPetFrame = 0;
+  animFrame = 0;
+  renderStrips();
+}
+
+document.getElementById('selPet').addEventListener('change', e => {
+  state.petIdx = +e.target.value; reload();
+});
+document.getElementById('selVariant').addEventListener('change', e => {
+  state.variantIdx = +e.target.value; reload();
+});
+document.getElementById('selAcc').addEventListener('change', e => {
+  state.accIdx = +e.target.value; reload();
+});
+
+await load();
+</script>
+</body>
+</html>
