@@ -752,7 +752,7 @@ export class Game {
 
     // Next button
     const isLc = CW > CH;
-    const [nxL, nxR, nyT, nyB] = isLc ? [CW-300, CW-40, Math.round(CH*0.74), Math.round(CH*0.74)+62] : [CW/2-120, CW/2+120, 950, 1056];
+    const [nxL, nxR, nyT, nyB] = isLc ? [CW-285, CW-95, Math.round(CH*0.73), Math.round(CH*0.73)+84] : [CW/2-120, CW/2+120, 950, 1056];
     if (x >= nxL && x <= nxR && y >= nyT && y <= nyB) {
       Audio.play('timpani', { volume: 0.5 });
       this._petFlash = 1.0;
@@ -871,7 +871,7 @@ export class Game {
     const isLd = CW > CH;
     if (isLd) {
       _drawBrandText(ctx, 'Pick a color!', CW - 200, 140, 28, B.darkBrown, '#ffffff');
-      drawFrame(ctx, 'texture-elements', 'btn-next.png', CW - 300, Math.round(CH * 0.74), 260, 62);
+      drawFrame(ctx, 'texture-elements', 'btn-next.png', CW - 285, Math.round(CH * 0.73), 190, 84);
     } else {
       _drawBrandText(ctx, 'Pick a color!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
       drawFrame(ctx, 'texture-elements', 'btn-next.png', CW/2 - 120, 950, 240, 106);
@@ -931,7 +931,7 @@ export class Game {
 
     // Adopt button
     const isLat = CW > CH;
-    const [axL, axR, ayT, ayB] = isLat ? [CW-300, CW-40, Math.round(CH*0.74), Math.round(CH*0.74)+62] : [CW/2-120, CW/2+120, 950, 1056];
+    const [axL, axR, ayT, ayB] = isLat ? [CW-285, CW-95, Math.round(CH*0.73), Math.round(CH*0.73)+84] : [CW/2-120, CW/2+120, 950, 1056];
     if (x >= axL && x <= axR && y >= ayT && y <= ayB) {
       Audio.play('timpani', { volume: 0.5 });
       this._petFlash = 1.0;
@@ -1046,7 +1046,7 @@ export class Game {
     const isLacc = CW > CH;
     if (isLacc) {
       _drawBrandText(ctx, 'Pick an accessory!', CW - 200, 140, 28, B.darkBrown, '#ffffff');
-      drawFrame(ctx, 'texture-elements', 'btn-adopt.png', CW - 300, Math.round(CH * 0.74), 260, 62);
+      drawFrame(ctx, 'texture-elements', 'btn-adopt.png', CW - 285, Math.round(CH * 0.73), 190, 84);
     } else {
       _drawBrandText(ctx, 'Pick an accessory!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
       drawFrame(ctx, 'texture-elements', 'btn-adopt.png', CW/2 - 120, 950, 240, 106);
@@ -1360,7 +1360,7 @@ export class Game {
       ctx.save();
       ctx.font = `bold 30px ${CONFIG.brand.fontDimbo}`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillStyle = B.darkBrown;
+      ctx.fillStyle = B.orange;
       ctx.fillText(`Games with YOUR ${petLabel}!`, LC, t2Y);
       ctx.restore();
 
