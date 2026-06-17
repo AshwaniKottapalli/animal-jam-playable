@@ -35,7 +35,7 @@ export const CONFIG = {
       sound: 'assets/audio/pet-2-sound.mp3',
       headOffsets: [0, 0, 0],
       accessories: [
-        { label: 'Tiki Hat', topShift: [11,   2,  -8], sideShift: [-5, -13,  -5], scale: 1.0 },
+        { label: 'Tiki Hat', topShift: [11,   2,  -8], sideShift: [-5, -13,  -5], scale: 0.87 },
         { label: 'Pharaoh',  topShift: [-22, -18, -34], sideShift: [-5,  -9,  -5], scale: 1.0 },
         { label: 'Crown',    topShift: [5,    3,  -8], sideShift: [-7, -11,  -4], scale: 1.0 },
       ],
