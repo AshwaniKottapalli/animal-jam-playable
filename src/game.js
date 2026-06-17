@@ -196,7 +196,7 @@ export class Game {
       'assets/texture-backgrounds-1.jpeg',
       'assets/texture-backgrounds-2.jpeg',
       'assets/ui/logotype.png',
-      'assets/generated/boxSprite_fixed.png',
+      'assets/generated/boxSprite_fixed.webp',
       ...CONFIG.gameCards.map(c => c.image),
     ];
     const total = atlasNames.length + imgAssets.length;
@@ -211,8 +211,11 @@ export class Game {
     [this._bgImg, this._bgCtaImg, this._logoImg, this._boxSpriteImg] = imgResults;
     this._gameImgs = imgResults.slice(4);
 
-    Object.entries(CONFIG.audio).forEach(([n, u]) => Audio.loadFile(n, u).catch(() => {}));
-    CONFIG.pets.forEach((p, i) => Audio.loadFile(`pet-${i + 1}`, p.sound).catch(() => {}));
+    // Defer audio — load after game starts so it doesn't compete with atlases
+    setTimeout(() => {
+      Object.entries(CONFIG.audio).forEach(([n, u]) => Audio.loadFile(n, u).catch(() => {}));
+      CONFIG.pets.forEach((p, i) => Audio.loadFile(`pet-${i + 1}`, p.sound).catch(() => {}));
+    }, 500);
 
     this._toBoxReveal();
     requestAnimationFrame(ts => this._loop(ts));
