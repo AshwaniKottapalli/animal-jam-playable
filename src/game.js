@@ -550,7 +550,7 @@ export class Game {
     }
 
     // Logo
-    if (this._logoImg) ctx.drawImage(this._logoImg, 10, 20, 240, 140);
+    if (this._logoImg) ctx.drawImage(this._logoImg, 72, 20, 240, 140);
 
     // Flash overlay
     if (b.flashAlpha > 0.01) {
@@ -614,8 +614,9 @@ export class Game {
     _drawBrandText(ctx, 'Who will you adopt?', CW/2, signY + sh * 0.84, isL ? 28 : 34, B.darkBrown, '#ffffff');
 
     // Logo
-    const lw = isL ? 200 : 240, lh = isL ? 140 : 140;
-    if (this._logoImg) ctx.drawImage(this._logoImg, 10, 20, lw, lh);
+    const lw = isL ? 200 : 240, lh = 140;
+    const logoX = isL ? 15 : 72;
+    if (this._logoImg) ctx.drawImage(this._logoImg, logoX, 20, lw, lh);
 
     // Hand pointer tutorial
     if (e < 3.0) {
