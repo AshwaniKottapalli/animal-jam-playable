@@ -956,6 +956,7 @@ export class Game {
       // Label below bubble
       ctx.font = `bold 20px ${B.font}`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.lineJoin = 'round'; ctx.lineCap = 'round';
       ctx.lineWidth = 4; ctx.strokeStyle = B.darkBrown;
       ctx.strokeText(labels[i], 0, BUBBLE_R + 6);
       ctx.fillStyle = isSelected ? B.orange : '#fff';
@@ -1101,7 +1102,9 @@ export class Game {
     ctx.fill();
 
     ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-    ctx.clip(); // everything inside stays rounded
+    ctx.beginPath();
+    _roundedRectPath(ctx, x, y, W, H, 20);
+    ctx.clip();
 
     if (gameImg) {
       // Full-bleed game image — fills entire card
@@ -1333,6 +1336,8 @@ function _drawBrandText(ctx, text, x, y, size, strokeColor, fillColor, fontFace)
   ctx.font = `bold ${size}px ${fontFace ?? CONFIG.brand.font}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineCap  = 'round';
   const lw = Math.ceil(size * 0.22);
 
   // 3D depth: dark shadow offset layer first
@@ -1417,10 +1422,14 @@ function _drawCardBgStyle(ctx, style, x, y, w, h, baseColor) {
  */
 function _drawGameIconMini(ctx, img, x, y, size) {
   ctx.save();
+  // Draw shadow on the base rect before clipping
   ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 5;
   ctx.beginPath(); _roundedRectPath(ctx, x, y, size, size, 18);
   ctx.fillStyle = '#1a1a2e'; ctx.fill();
-  ctx.shadowBlur = 0; ctx.clip();
+  // Clear shadow then clip so it doesn't bleed onto the image
+  ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+  ctx.beginPath(); _roundedRectPath(ctx, x, y, size, size, 18);
+  ctx.clip();
   if (img) ctx.drawImage(img, x, y, size, size);
   ctx.restore();
 }
