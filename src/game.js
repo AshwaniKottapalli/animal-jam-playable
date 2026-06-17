@@ -1282,9 +1282,9 @@ export class Game {
   _handleCtaTap(x, y) {
     const isLct = CW > CH;
     if (isLct) {
-      // Landscape: game grid right side, button bottom-center
+      // Landscape: game grid right, button left column
       if (x >= 860 && y >= 255 && y <= 560) { this._doInstall(); return; }
-      if (x >= 400 && x <= 880 && y >= 622 && y <= 696) { this._doInstall(); return; }
+      if (x >= 80 && x <= 460 && y >= 380 && y <= 456) { this._doInstall(); return; }
     } else {
       if (y >= 840 && y <= 1120) { this._doInstall(); return; }
       if (x >= CW/2 - 210 && x <= CW/2 + 210 && y >= 1135 && y <= 1205) { this._doInstall(); return; }
@@ -1367,19 +1367,20 @@ export class Game {
         }
       }
 
-      // Play for Free! — LARGE, bottom-center, max visibility
-      const btnW = 480, btnX = (CW - btnW) / 2;
+      // Play for Free! — left column, below tagline text
+      const btnW = 380, btnX = 80;
+      const btnY = 380;
       const pulse_l = 1 + Math.sin(this._ctaElapsed * 3.5) * 0.04;
       ctx.save();
-      ctx.translate(CW/2, 662); ctx.scale(pulse_l, pulse_l); ctx.translate(-CW/2, -662);
-      _drawCTAButton(ctx, btnX, 628, btnW, 68);
+      ctx.translate(btnX + btnW/2, btnY + 38); ctx.scale(pulse_l, pulse_l); ctx.translate(-(btnX + btnW/2), -(btnY + 38));
+      _drawCTAButton(ctx, btnX, btnY, btnW, 76);
       ctx.restore();
 
       // Copyright
       ctx.font = `11px ${CONFIG.brand.fontBody}`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
       ctx.fillStyle = 'rgba(255,255,255,0.28)';
-      ctx.fillText('© 2026 WildWorks. All rights reserved.', CW/2, 700);
+      ctx.fillText('© 2026 WildWorks. All rights reserved.', 82, 700);
     } else {
       // ── PORTRAIT CTA (unchanged) ────────────────────────────────────────────
       if (this._logoImg) {
