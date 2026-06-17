@@ -13,10 +13,10 @@ function resize() {
   const cw = isLandscape ? 1280 : 720;
   const ch = isLandscape ? 720  : 1280;
 
-  // Scale canvas to fill viewport while preserving aspect ratio
-  const scale = Math.min(vw / cw, vh / ch);
-  const w = cw * scale;
-  const h = ch * scale;
+  // COVER: fill the viewport in the dominant dimension, allow the other to overflow.
+  // body { overflow: hidden } clips the overflow — no bars ever.
+  const w = isLandscape ? vw        : vh * cw / ch;
+  const h = isLandscape ? vw * ch / cw : vh;
 
   app.style.width   = `${w}px`;
   app.style.height  = `${h}px`;
