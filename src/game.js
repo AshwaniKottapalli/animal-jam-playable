@@ -498,7 +498,7 @@ export class Game {
     if (b.subPhase === 'OPEN') {
       // Sign slides down from top
       const isLbr = CW > CH;
-      const sw = isLbr ? 420 : 420, sh = Math.round(sw * 448 / 587);
+      const sw = isLbr ? 260 : 420, sh = Math.round(sw * 448 / 587);
       drawFrame(ctx, 'texture-elements', 'sign.png', CW/2 - sw/2, b.signY, sw, sh);
       _drawBrandText(ctx, 'Who will you adopt?', CW/2, b.signY + sh * 0.84, isLbr ? 22 : 34, B.darkBrown, '#ffffff');
 
@@ -553,7 +553,7 @@ export class Game {
 
     // Logo
     const isLbx = CW > CH;
-    if (this._logoImg) ctx.drawImage(this._logoImg, isLbx ? 22 : 72, isLbx ? 48 : 20, isLbx ? 170 : 240, isLbx ? 120 : 140);
+    if (this._logoImg) ctx.drawImage(this._logoImg, isLbx ? 22 : 72, isLbx ? 80 : 20, isLbx ? 170 : 240, isLbx ? 120 : 140);
 
     // Flash overlay
     if (b.flashAlpha > 0.01) {
@@ -610,16 +610,17 @@ export class Game {
     const e = this._selectElapsed;
     const isL = CW > CH;
 
-    // Sign
-    const sw = isL ? 420 : 420, sh = Math.round(sw * 448 / 587);
-    const signY = isL ? 2 : 70;
+    // Sign — in landscape use smaller sign so text sits higher
+    // Target: text at y≈185 (25% of 720px canvas)
+    const sw = isL ? 260 : 420, sh = Math.round(sw * 448 / 587);
+    const signY = isL ? 20 : 70;
     drawFrame(ctx, 'texture-elements', 'sign.png', CW/2 - sw/2, signY, sw, sh);
-    _drawBrandText(ctx, 'Who will you adopt?', CW/2, signY + sh * 0.84, isL ? 32 : 34, B.darkBrown, '#ffffff');
+    _drawBrandText(ctx, 'Who will you adopt?', CW/2, signY + sh * 0.84, isL ? 28 : 34, B.darkBrown, '#ffffff');
 
-    // Logo — pushed down in landscape to clear COVER top-clip
+    // Logo — y=80 clears COVER top-clip even on 650px-tall viewports
     const lw = isL ? 170 : 240, lh = isL ? 120 : 140;
     const logoX = isL ? 22 : 72;
-    const logoY = isL ? 48 : 12;
+    const logoY = isL ? 80 : 12;
     if (this._logoImg) ctx.drawImage(this._logoImg, logoX, logoY, lw, lh);
 
     // Hand pointer tutorial
