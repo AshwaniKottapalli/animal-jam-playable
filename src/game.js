@@ -34,10 +34,10 @@ function _computeLayout(isLandscape) {
     ARC_ORB_Y   = [400, 315, 400];
     RUG_FINAL_Y = 745;
   } else {
-    FLOOR_Y     = 540;
+    FLOOR_Y     = 590;
     ARC_ORB_X   = [200, 200, 200];   // left panel, stacked
     ARC_ORB_Y   = [210, 360, 510];
-    RUG_FINAL_Y = 485;
+    RUG_FINAL_Y = 535;
   }
 }
 
@@ -496,9 +496,10 @@ export class Game {
 
     if (b.subPhase === 'OPEN') {
       // Sign slides down from top
-      const sw = 420, sh = Math.round(420 * 448 / 587);
+      const isLbr = CW > CH;
+      const sw = isLbr ? 260 : 420, sh = Math.round(sw * 448 / 587);
       drawFrame(ctx, 'texture-elements', 'sign.png', CW/2 - sw/2, b.signY, sw, sh);
-      _drawBrandText(ctx, 'Who will you adopt?', CW/2, b.signY + sh * 0.84, 34, B.darkBrown, '#ffffff');
+      _drawBrandText(ctx, 'Who will you adopt?', CW/2, b.signY + sh * 0.84, isLbr ? 22 : 34, B.darkBrown, '#ffffff');
 
       // 3 pets springing out
       for (let i = 0; i < 3; i++) {
@@ -519,7 +520,7 @@ export class Game {
       if (b.handAlpha > 0.01) {
         const isLhand = CW > CH;
         const PET_HAND_X = isLhand ? [220, 640, 1060] : [152, 362, 572];
-        const PET_HAND_Y = isLhand ? [610, 600, 610]  : [760, 750, 760];
+        const PET_HAND_Y = isLhand ? [650, 640, 650]  : [760, 750, 760];
 
         // Advance cycle timer
         b.handTimer += dt;
@@ -570,9 +571,9 @@ export class Game {
     // Re-init only if renderers weren't already set up by the box reveal
     if (!this._selectRenderers?.length) {
       const isL = CW > CH;
-      const scl = isL ? 1.6  : 1.35;
+      const scl = isL ? 2.0  : 1.35;
       const cxs = isL ? [220, 640, 1060] : [152, 362, 572];
-      const cys = isL ? [530, 520, 530]  : [710, 700, 710];
+      const cys = isL ? [570, 558, 570]  : [710, 700, 710];
       this._selectRenderers = CONFIG.pets.map((pet, i) => {
         const r = new PetRenderer(this._canvas);
         r.scale = scl;
@@ -589,7 +590,7 @@ export class Game {
     const isL = CW > CH;
     for (let i = 0; i < 3; i++) {
       const cx = isL ? [220, 640, 1060][i] : [152, 362, 572][i];
-      const cy = isL ? [530, 520, 530][i]  : [710, 700, 710][i];
+      const cy = isL ? [570, 558, 570][i]  : [710, 700, 710][i];
       if (Math.abs(x - cx) < 140 && Math.abs(y - cy) < 160) {
         Audio.play(`pet-${i + 1}`, { volume: 0.9 });
         const r = this._selectRenderers[i];
@@ -607,16 +608,16 @@ export class Game {
     const e = this._selectElapsed;
     const isL = CW > CH;
 
-    // Sign
-    const sw = isL ? 380 : 420, sh = Math.round(sw * 448 / 587);
-    const signY = isL ? 20 : 70;
+    // Sign — smaller in landscape so pets have room
+    const sw = isL ? 240 : 420, sh = Math.round(sw * 448 / 587);
+    const signY = isL ? 8 : 70;
     drawFrame(ctx, 'texture-elements', 'sign.png', CW/2 - sw/2, signY, sw, sh);
-    _drawBrandText(ctx, 'Who will you adopt?', CW/2, signY + sh * 0.84, isL ? 28 : 34, B.darkBrown, '#ffffff');
+    _drawBrandText(ctx, 'Who will you adopt?', CW/2, signY + sh * 0.84, isL ? 20 : 34, B.darkBrown, '#ffffff');
 
-    // Logo
-    const lw = isL ? 200 : 240, lh = 140;
-    const logoX = isL ? 15 : 72;
-    if (this._logoImg) ctx.drawImage(this._logoImg, logoX, 20, lw, lh);
+    // Logo — smaller in landscape
+    const lw = isL ? 160 : 240, lh = isL ? 112 : 140;
+    const logoX = isL ? 20 : 72;
+    if (this._logoImg) ctx.drawImage(this._logoImg, logoX, 12, lw, lh);
 
     // Hand pointer tutorial
     if (e < 3.0) {
@@ -635,7 +636,7 @@ export class Game {
     }
 
     // 3 animated pets with bob
-    const baseCys = isL ? [530, 520, 530] : [710, 700, 710];
+    const baseCys = isL ? [570, 558, 570] : [710, 700, 710];
     for (let i = 0; i < this._selectRenderers.length; i++) {
       const r = this._selectRenderers[i];
       const baseCy = baseCys[i];
