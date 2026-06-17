@@ -57,9 +57,9 @@ export const CONFIG = {
   // 3 colors match the actual idle-1 / idle-2 / idle-3 sprite variants:
   // idle-1 = natural/tan, idle-2 = warm brown/orange, idle-3 = dark red
   colors: [
-    { id: 'natural', label: 'Natural', sprite: 'color_bezj.png',  hex: '#d4b483', idleVariant: 1 },
-    { id: 'brown',   label: 'Brown',   sprite: 'color_brown.png',  hex: '#8b5e3c', idleVariant: 2 },
-    { id: 'red',     label: 'Red',     sprite: 'color_red.png',    hex: '#e05050', idleVariant: 3 },
+    { id: 'natural', label: 'Natural', sprite: 'color_bezj.jpg',  hex: '#d4b483', idleVariant: 1 },
+    { id: 'brown',   label: 'Brown',   sprite: 'color_brown.jpg',  hex: '#8b5e3c', idleVariant: 2 },
+    { id: 'red',     label: 'Red',     sprite: 'color_red.jpg',    hex: '#e05050', idleVariant: 3 },
   ],
 
   anim: {
@@ -72,12 +72,12 @@ export const CONFIG = {
 
   // Game icon cards — real Animal Jam game images
   gameCards: [
-    { title: 'Best Dressed',      image: 'assets/ui/games/best_dressed.png'    },
-    { title: 'Roll!!!!!',         image: 'assets/ui/games/roll.png'             },
-    { title: 'Pest Control',      image: 'assets/ui/games/pest_control.png'     },
-    { title: "A Puppy's Tale",    image: 'assets/ui/games/puppys_tale.png'      },
-    { title: 'Fast Foodies',      image: 'assets/ui/games/fast_foodies.png'     },
-    { title: 'Temple of Trivia',  image: 'assets/ui/games/temple_of_trivia.png' },
+    { title: 'Best Dressed',      image: 'assets/ui/games/best_dressed.jpg'    },
+    { title: 'Roll!!!!!',         image: 'assets/ui/games/roll.jpg'             },
+    { title: 'Pest Control',      image: 'assets/ui/games/pest_control.jpg'     },
+    { title: "A Puppy's Tale",    image: 'assets/ui/games/puppys_tale.jpg'      },
+    { title: 'Fast Foodies',      image: 'assets/ui/games/fast_foodies.jpg'     },
+    { title: 'Temple of Trivia',  image: 'assets/ui/games/temple_of_trivia.jpg' },
   ],
   carouselScrollSpeed: 140, // px per second (snappier)
   carouselDuration:    8,   // seconds before CTA (slightly longer for new layout)
