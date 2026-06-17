@@ -48,6 +48,9 @@ export class PetRenderer {
 
   stopAccessory() { this._accAnim = null; }
 
+  // headOffsets: array of {dx, dy} per idle frame (from head-offsets.json)
+  setHeadOffsets(offsets) { this._headOffsets = offsets || null; }
+
   update(dt) {
     if (!this._anim || this.paused) return;
     this._elapsed += dt;
@@ -83,13 +86,18 @@ export class PetRenderer {
     // stay registered to the same pivot point (0.5, 0.5 of sourceSize).
     _drawAnchored(ctx, fd, cx, cy, scale);
 
-    // Draw accessory: use settled last frame, nudge vertically by the pet
-    // frame's own sss.y so the accessory tracks the head's idle micro-movement.
     if (this._accAnim?.length) {
       const afd = this._accAnim[this._accAnim.length - 1];
-      const petSssY = fd.spriteSourceSize?.y ?? 0;
-      const petSssX = fd.spriteSourceSize?.x ?? 0;
-      if (afd) _drawAccessoryAnchored(ctx, afd, fd, cx, cy, scale, this._accHeadShift || 0, this._accTopShift || 0, petSssY * scale, -petSssX * scale, this._accSideShift || 0);
+      // Use centroid-based head offsets if available, otherwise fall back to sss nudge
+      let extraX = 0, extraY = 0;
+      if (this._headOffsets?.[this._frame]) {
+        extraX =  this._headOffsets[this._frame].dx * scale;
+        extraY =  this._headOffsets[this._frame].dy * scale;
+      } else {
+        extraY = (fd.spriteSourceSize?.y ?? 0) * scale;
+        extraX = -(fd.spriteSourceSize?.x ?? 0) * scale;
+      }
+      if (afd) _drawAccessoryAnchored(ctx, afd, fd, cx, cy, scale, this._accHeadShift || 0, this._accTopShift || 0, extraY, extraX, this._accSideShift || 0);
     }
   }
 
