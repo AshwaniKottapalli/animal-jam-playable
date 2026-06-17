@@ -23,9 +23,9 @@ export const CONFIG = {
       sound: 'assets/audio/pet-1-sound.mp3',
       headOffsets: [0, 0, 0],
       accessories: [
-        { label: 'Flowers',  topShift: [2,   0,  -36], sideShift: [-7, -10, -11] },
-        { label: 'Visor',    topShift: [-17, -16, -71], sideShift: [-1,  -7,  -2] },
-        { label: 'Bow Tie',  topShift: [1,   0,  -37], sideShift: [0,   0,   7] },
+        { label: 'Flowers',  topShift: [2,   0,  -36], sideShift: [-7, -10, -11], scale: 1.0 },
+        { label: 'Visor',    topShift: [-17, -16, -71], sideShift: [-1,  -7,  -2], scale: 1.0 },
+        { label: 'Bow Tie',  topShift: [1,   0,  -37], sideShift: [0,   0,   7], scale: 1.0 },
       ],
     },
     {
@@ -35,9 +35,9 @@ export const CONFIG = {
       sound: 'assets/audio/pet-2-sound.mp3',
       headOffsets: [0, 0, 0],
       accessories: [
-        { label: 'Tiki Hat', topShift: [11,   2,  -8], sideShift: [-5, -13,  -5] },
-        { label: 'Pharaoh',  topShift: [-22, -18, -34], sideShift: [-5,  -9,  -5] },
-        { label: 'Crown',    topShift: [5,    3,  -8], sideShift: [-7, -11,  -4] },
+        { label: 'Tiki Hat', topShift: [11,   2,  -8], sideShift: [-5, -13,  -5], scale: 1.0 },
+        { label: 'Pharaoh',  topShift: [-22, -18, -34], sideShift: [-5,  -9,  -5], scale: 1.0 },
+        { label: 'Crown',    topShift: [5,    3,  -8], sideShift: [-7, -11,  -4], scale: 1.0 },
       ],
     },
     {
@@ -47,9 +47,9 @@ export const CONFIG = {
       sound: 'assets/audio/pet-3-sound.mp3',
       headOffsets: [0, 0, 0],
       accessories: [
-        { label: 'Glasses',    topShift: [-28, -20, -49], sideShift: [-7, -7,  3] },
-        { label: 'Unicorn',    topShift: [17,   27,  -7], sideShift: [-7, -5,  4] },
-        { label: 'Garden Hat', topShift: [2,     9, -13], sideShift: [-8, -4,  6] },
+        { label: 'Glasses',    topShift: [-28, -20, -49], sideShift: [-7, -7,  3], scale: 1.0 },
+        { label: 'Unicorn',    topShift: [17,   27,  -7], sideShift: [-7, -5,  4], scale: 1.0 },
+        { label: 'Garden Hat', topShift: [2,     9, -13], sideShift: [-8, -4,  6], scale: 1.0 },
       ],
     },
   ],

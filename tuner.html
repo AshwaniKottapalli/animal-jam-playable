@@ -95,8 +95,8 @@
   <div class="divider"></div>
 
   <div class="group">
-    <h2>Per-accessory topShift / sideShift</h2>
-    <p class="note">Fine-tune per accessory. Positive topShift = UP. Positive sideShift = RIGHT.</p>
+    <h2>Per-accessory topShift / sideShift / scale</h2>
+    <p class="note">Positive topShift = UP. Positive sideShift = RIGHT. Scale = size multiplier.</p>
     <div class="row">
       <label id="lblShift">topShift</label>
       <input type="range" id="sliderShift" min="-80" max="80" value="0" step="1">
@@ -106,6 +106,11 @@
       <label id="lblSide">sideShift</label>
       <input type="range" id="sliderSide" min="-80" max="80" value="0" step="1">
       <span class="val" id="valSide">0</span>
+    </div>
+    <div class="row">
+      <label id="lblScale">scale</label>
+      <input type="range" id="sliderScale" min="0.4" max="1.6" value="1.0" step="0.01">
+      <span class="val" id="valScale">1.00</span>
     </div>
   </div>
 
@@ -142,6 +147,7 @@ const state = {
   // topShifts[petIdx][accIdx][variantIdx]
   topShifts:  { 0:{0:[0,0,0],1:[0,0,0],2:[0,0,0]}, 1:{0:[0,0,0],1:[0,0,0],2:[0,0,0]}, 2:{0:[0,0,0],1:[0,0,0],2:[0,0,0]} },
   sideShifts: { 0:{0:[0,0,0],1:[0,0,0],2:[0,0,0]}, 1:{0:[0,0,0],1:[0,0,0],2:[0,0,0]}, 2:{0:[0,0,0],1:[0,0,0],2:[0,0,0]} },
+  accScales:  { 0:{0:1.0,1:1.0,2:1.0}, 1:{0:1.0,1:1.0,2:1.0}, 2:{0:1.0,1:1.0,2:1.0} },
 };
 
 // Seed from config
@@ -151,6 +157,7 @@ CONFIG.pets.forEach((pet, pi) => {
     [0,1,2].forEach(vi => {
       state.topShifts[pi][ai][vi]  = Array.isArray(acc.topShift)  ? (acc.topShift[vi]  ?? 0) : (acc.topShift  ?? 0);
       state.sideShifts[pi][ai][vi] = Array.isArray(acc.sideShift) ? (acc.sideShift[vi] ?? 0) : (acc.sideShift ?? 0);
+      state.accScales[pi][ai]      = acc.scale ?? 1.0;
     });
   });
 });
@@ -236,10 +243,11 @@ function render() {
     const headOffset = state.headOffsets[state.petIdx][vi];
     const topShift   = state.topShifts[state.petIdx][state.accIdx][vi];
     const sideShift  = state.sideShifts[state.petIdx][state.accIdx][vi];
+    const accScale   = state.accScales[state.petIdx][state.accIdx];
     const afd = accFrames[accFrames.length - 1];
     const petSssY = fd.spriteSourceSize?.y ?? 0;
     const petSssX = fd.spriteSourceSize?.x ?? 0;
-    drawAccessory(ctx, afd, fd, cx, cy, scale, headOffset, topShift, petSssY * scale, -petSssX * scale, sideShift);
+    drawAccessory(ctx, afd, fd, cx, cy, scale, headOffset, topShift, petSssY * scale, -petSssX * scale, sideShift, accScale);
   }
 
   // Labels
@@ -269,22 +277,19 @@ function drawAnchored(ctx, fd, cx, cy, scale) {
   }
 }
 
-function drawAccessory(ctx, afd, petFd, cx, cy, scale, headOffset, topShift, petSssYOffset, petSssXOffset, sideShift) {
+function drawAccessory(ctx, afd, petFd, cx, cy, scale, headOffset, topShift, petSssYOffset, petSssXOffset, sideShift, accScale = 1.0) {
   const petSrcH = petFd.sourceSize.h;
   const accSrcH = afd.sourceSize.h;
   const accSrcW = afd.sourceSize.w;
   const sss = afd.spriteSourceSize;
-  const dw = afd.naturalW * scale;
-  const dh = afd.naturalH * scale;
+  const dw = afd.naturalW * scale * accScale;
+  const dh = afd.naturalH * scale * accScale;
 
-  const dx = cx - (accSrcW / 2) * scale + sss.x * scale + (petSssXOffset || 0) + (sideShift || 0) * scale;
-  const dy = cy
-    - (petSrcH / 2) * scale
-    + headOffset * scale
-    - (accSrcH / 2) * scale
-    + sss.y * scale
-    - topShift * scale
-    + (petSssYOffset || 0);
+  const baseDx = cx - (accSrcW / 2) * scale + sss.x * scale + (petSssXOffset || 0) + (sideShift || 0) * scale;
+  const baseDy = cy - (petSrcH / 2) * scale + headOffset * scale
+    - (accSrcH / 2) * scale + sss.y * scale - topShift * scale + (petSssYOffset || 0);
+  const dx = baseDx + (dw / accScale - dw) / 2;
+  const dy = baseDy + (dh / accScale - dh) / 2;
 
   ctx.save();
   ctx.globalAlpha = 0.9;
@@ -324,6 +329,7 @@ function updateOutput() {
       out += `  ${acc.label}:\n`;
       out += `    topShift:  [${ts.join(', ')}]\n`;
       out += `    sideShift: [${ss.join(', ')}]\n`;
+      out += `    scale:     ${state.accScales[pi2][ai2].toFixed(2)}\n`;
     });
     out += '\n';
   });
@@ -337,6 +343,7 @@ function syncControls() {
   const ho = state.headOffsets[pi][vi];
   const ts = state.topShifts[pi][ai][vi];
   const ss = state.sideShifts[pi][ai][vi];
+  const sc = state.accScales[pi][ai];
 
   document.getElementById('sliderHead').value = ho;
   document.getElementById('valHead').textContent = ho;
@@ -344,10 +351,13 @@ function syncControls() {
   document.getElementById('valShift').textContent = ts;
   document.getElementById('sliderSide').value = ss;
   document.getElementById('valSide').textContent = ss;
+  document.getElementById('sliderScale').value = sc;
+  document.getElementById('valScale').textContent = sc.toFixed(2);
 
   document.getElementById('lblHead').textContent = `${pet.id} v${vi+1}`;
   document.getElementById('lblShift').textContent = `${accLabel} v${vi+1}`;
   document.getElementById('lblSide').textContent  = `${accLabel} v${vi+1}`;
+  document.getElementById('lblScale').textContent = accLabel;
 }
 
 // Controls
@@ -381,6 +391,12 @@ document.getElementById('sliderShift').addEventListener('input', e => {
 document.getElementById('sliderSide').addEventListener('input', e => {
   state.sideShifts[state.petIdx][state.accIdx][state.colorVariant] = +e.target.value;
   document.getElementById('valSide').textContent = e.target.value;
+  updateOutput();
+});
+
+document.getElementById('sliderScale').addEventListener('input', e => {
+  state.accScales[state.petIdx][state.accIdx] = +e.target.value;
+  document.getElementById('valScale').textContent = (+e.target.value).toFixed(2);
   updateOutput();
 });
 
