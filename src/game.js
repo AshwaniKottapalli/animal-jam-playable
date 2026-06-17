@@ -207,6 +207,12 @@ export class Game {
   async start() {
     Audio.init();
 
+    // Sync CW/CH from actual canvas dimensions — resize() runs before _game exists
+    // so setOrientation() is a no-op on first load; we must init here.
+    CW = this._canvas.width;
+    CH = this._canvas.height;
+    _computeLayout(CW > CH);
+
     this._show(buildLoadingScreen());
 
     // Kick off ALL background assets immediately (parallel with phase 1)
@@ -746,7 +752,7 @@ export class Game {
 
     // Next button
     const isLc = CW > CH;
-    const [nxL, nxR, nyT, nyB] = isLc ? [CW-310, CW-30, CH-100, CH-18] : [CW/2-120, CW/2+120, 950, 1056];
+    const [nxL, nxR, nyT, nyB] = isLc ? [CW-300, CW-40, CH-125, CH-59] : [CW/2-120, CW/2+120, 950, 1056];
     if (x >= nxL && x <= nxR && y >= nyT && y <= nyB) {
       Audio.play('timpani', { volume: 0.5 });
       this._petFlash = 1.0;
@@ -865,7 +871,7 @@ export class Game {
     const isLd = CW > CH;
     if (isLd) {
       _drawBrandText(ctx, 'Pick a color!', CW - 200, 140, 28, B.darkBrown, '#ffffff');
-      drawFrame(ctx, 'texture-elements', 'btn-next.png', CW - 310, CH - 100, 280, 82);
+      drawFrame(ctx, 'texture-elements', 'btn-next.png', CW - 300, CH - 125, 260, 66);
     } else {
       _drawBrandText(ctx, 'Pick a color!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
       drawFrame(ctx, 'texture-elements', 'btn-next.png', CW/2 - 120, 950, 240, 106);
@@ -925,7 +931,7 @@ export class Game {
 
     // Adopt button
     const isLat = CW > CH;
-    const [axL, axR, ayT, ayB] = isLat ? [CW-310, CW-30, CH-100, CH-18] : [CW/2-120, CW/2+120, 950, 1056];
+    const [axL, axR, ayT, ayB] = isLat ? [CW-300, CW-40, CH-125, CH-59] : [CW/2-120, CW/2+120, 950, 1056];
     if (x >= axL && x <= axR && y >= ayT && y <= ayB) {
       Audio.play('timpani', { volume: 0.5 });
       this._petFlash = 1.0;
@@ -1040,7 +1046,7 @@ export class Game {
     const isLacc = CW > CH;
     if (isLacc) {
       _drawBrandText(ctx, 'Pick an accessory!', CW - 200, 140, 28, B.darkBrown, '#ffffff');
-      drawFrame(ctx, 'texture-elements', 'btn-adopt.png', CW - 310, CH - 100, 280, 82);
+      drawFrame(ctx, 'texture-elements', 'btn-adopt.png', CW - 300, CH - 125, 260, 66);
     } else {
       _drawBrandText(ctx, 'Pick an accessory!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
       drawFrame(ctx, 'texture-elements', 'btn-adopt.png', CW/2 - 120, 950, 240, 106);
@@ -1284,7 +1290,7 @@ export class Game {
     if (isLct) {
       // Landscape: game grid right, button left column
       if (x >= 860 && y >= 255 && y <= 560) { this._doInstall(); return; }
-      if (x >= 80 && x <= 460 && y >= 380 && y <= 456) { this._doInstall(); return; }
+      if (x >= 80 && x <= 460 && y >= 440 && y <= 512) { this._doInstall(); return; }
     } else {
       if (y >= 840 && y <= 1120) { this._doInstall(); return; }
       if (x >= CW/2 - 210 && x <= CW/2 + 210 && y >= 1135 && y <= 1205) { this._doInstall(); return; }
@@ -1367,13 +1373,12 @@ export class Game {
         }
       }
 
-      // Play for Free! — left column, below tagline text
-      const btnW = 380, btnX = 80;
-      const btnY = 380;
+      // Play for Free! — left column, prominent, well within canvas
+      const btnW = 380, btnX = 80, btnY = 440, btnH = 72;
       const pulse_l = 1 + Math.sin(this._ctaElapsed * 3.5) * 0.04;
       ctx.save();
-      ctx.translate(btnX + btnW/2, btnY + 38); ctx.scale(pulse_l, pulse_l); ctx.translate(-(btnX + btnW/2), -(btnY + 38));
-      _drawCTAButton(ctx, btnX, btnY, btnW, 76);
+      ctx.translate(btnX + btnW/2, btnY + btnH/2); ctx.scale(pulse_l, pulse_l); ctx.translate(-(btnX + btnW/2), -(btnY + btnH/2));
+      _drawCTAButton(ctx, btnX, btnY, btnW, btnH);
       ctx.restore();
 
       // Copyright
