@@ -846,7 +846,7 @@ export class Game {
           () => tween(this._acc.orbScales, { [i]: 1 }, 0.12, Ease.easeOutCubic));
         this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`);
         
-        this._renderer.playAccessory(this.petId, i);
+        this._renderer.playAccessory(this.petId, i, this.colorIdx);
         this._particles.emit(ARC_ORB_X[i], this._acc.orbCys[i], 10,
           { kind: 'sparkle', color: '#ffe066', speed: 200, size: 12, lifetime: 0.6 });
         Audio.play('suction', { volume: 0.7 });
@@ -983,7 +983,7 @@ export class Game {
     this._renderer.cy    = this._floorCy(2.0);
     this._renderer.scale = 2.0;
     this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`);
-    if (this.accIdx >= 0) this._renderer.playAccessory(this.petId, this.accIdx);
+    if (this.accIdx >= 0) this._renderer.playAccessory(this.petId, this.accIdx, this.colorIdx);
     else this._renderer.stopAccessory();
 
     this._carousel = {
@@ -1172,7 +1172,7 @@ export class Game {
     this._renderer.cy    = CH + 300;   // off-screen bottom
     this._renderer.scale = 0.4;
     this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`);
-    if (this.accIdx >= 0) this._renderer.playAccessory(this.petId, this.accIdx);
+    if (this.accIdx >= 0) this._renderer.playAccessory(this.petId, this.accIdx, this.colorIdx);
 
     // Jump tween — smaller scale so pet sits on the rug, not towering above it
     const finalCy = this._floorCy(1.4);
