@@ -267,9 +267,9 @@ export class Game {
     // Background — _bgZoom > 1 creates cinematic zoom-in when pet is selected
     const bg = this._bgImg; // bg1 (tropical dock) for all states
     if (bg) {
-      const s  = (CH / 1020) * 1020 * this._bgZoom;
+      const s  = Math.max(CW, CH) * this._bgZoom;
       const bx = -((s - CW) / 2);
-      const by = -((s - CH) / 2);  // also center vertically when zoomed
+      const by = -((s - CH) / 2);
       ctx.drawImage(bg, bx, by, s, s);
     }
 
