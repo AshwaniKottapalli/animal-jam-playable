@@ -345,9 +345,9 @@ export class Game {
   // Box body solid center at frame y≈504 (49% from top of 1024px frame)
   static get _BOX() {
     const isL = CW > CH;
-    const SCALE     = isL ? 0.80  : 1.25;
+    const SCALE     = isL ? 1.0   : 1.25;
     const boxCenterX = CW / 2;
-    const boxCenterY = isL ? CH * 0.56 : 660;
+    const boxCenterY = isL ? CH * 0.60 : 660;
     return {
       FRAMES: 8, FRAME_W: 192, FRAME_H: 1024,
       SCALE,
@@ -498,7 +498,7 @@ export class Game {
     if (b.subPhase === 'OPEN') {
       // Sign slides down from top
       const isLbr = CW > CH;
-      const sw = isLbr ? 260 : 420, sh = Math.round(sw * 448 / 587);
+      const sw = isLbr ? 420 : 420, sh = Math.round(sw * 448 / 587);
       drawFrame(ctx, 'texture-elements', 'sign.png', CW/2 - sw/2, b.signY, sw, sh);
       _drawBrandText(ctx, 'Who will you adopt?', CW/2, b.signY + sh * 0.84, isLbr ? 22 : 34, B.darkBrown, '#ffffff');
 
@@ -611,10 +611,10 @@ export class Game {
     const isL = CW > CH;
 
     // Sign
-    const sw = isL ? 320 : 420, sh = Math.round(sw * 448 / 587);
+    const sw = isL ? 420 : 420, sh = Math.round(sw * 448 / 587);
     const signY = isL ? 14 : 70;
     drawFrame(ctx, 'texture-elements', 'sign.png', CW/2 - sw/2, signY, sw, sh);
-    _drawBrandText(ctx, 'Who will you adopt?', CW/2, signY + sh * 0.84, isL ? 26 : 34, B.darkBrown, '#ffffff');
+    _drawBrandText(ctx, 'Who will you adopt?', CW/2, signY + sh * 0.84, isL ? 32 : 34, B.darkBrown, '#ffffff');
 
     // Logo — pushed down in landscape to clear COVER top-clip
     const lw = isL ? 170 : 240, lh = isL ? 120 : 140;
