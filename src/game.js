@@ -1290,7 +1290,7 @@ export class Game {
     if (isLct) {
       // Landscape: game grid right, button left column
       if (x >= 860 && y >= 255 && y <= 560) { this._doInstall(); return; }
-      if (x >= 82 && x <= 462 && y >= 358 && y <= 426) { this._doInstall(); return; }
+      if (x >= 60 && x <= 440 && y >= 340 && y <= 408) { this._doInstall(); return; }
     } else {
       if (y >= 840 && y <= 1120) { this._doInstall(); return; }
       if (x >= CW/2 - 210 && x <= CW/2 + 210 && y >= 1135 && y <= 1205) { this._doInstall(); return; }
@@ -1329,31 +1329,29 @@ export class Game {
       // Layout: LEFT col (text) | CENTER (pet) | RIGHT col (game grid)
       // Button: bottom-center, large + prominent
 
-      // ── LEFT COLUMN — evenly spaced, consistent 18px gaps ──────────────────
-      // Logo: y=82, h=118 → bottom=200
+      // ── LEFT COLUMN — everything center-aligned at x=250 ───────────────────
+      const LC = 250; // left-column center x
+      const logoW = 190, logoH = 126;
       if (this._logoImg) {
         ctx.save();
         ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 10;
-        ctx.drawImage(this._logoImg, 82, 82, 180, 118);
+        ctx.drawImage(this._logoImg, LC - logoW/2, 75, logoW, logoH);
         ctx.restore();
       }
-      // Badge: top=218 (18px gap after logo)
-      _drawSocialProofBadge(ctx, 162, 232);
-      // Tagline 1: y=266 (18px gap after badge bottom ≈248)
+      _drawSocialProofBadge(ctx, LC, 218);   // badge centered
       ctx.save();
-      ctx.font = `bold 22px ${CONFIG.brand.fontDimbo}`;
-      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.font = `bold 21px ${CONFIG.brand.fontDimbo}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.lineWidth = 3; ctx.strokeStyle = B.darkBrown; ctx.lineJoin = 'round';
-      ctx.strokeText('Adopt, Explore, Decorate & Play', 82, 266);
+      ctx.strokeText('Adopt, Explore, Decorate & Play', LC, 256);
       ctx.fillStyle = '#ffffff';
-      ctx.fillText('Adopt, Explore, Decorate & Play', 82, 266);
+      ctx.fillText('Adopt, Explore, Decorate & Play', LC, 256);
       ctx.restore();
-      // Tagline 2: y=302 (36px gap = line height)
       ctx.save();
-      ctx.font = `bold 32px ${CONFIG.brand.fontDimbo}`;
-      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.font = `bold 30px ${CONFIG.brand.fontDimbo}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillStyle = B.darkBrown;
-      ctx.fillText(`Games with YOUR ${petLabel}!`, 82, 304);
+      ctx.fillText(`Games with YOUR ${petLabel}!`, LC, 292);
       ctx.restore();
 
       // Pet — centered
@@ -1374,8 +1372,8 @@ export class Game {
         }
       }
 
-      // Play for Free! — left column, y=358 (18px gap after tagline 2 bottom≈320+16=336+18=354)
-      const btnW = 380, btnX = 82, btnY = 358, btnH = 68;
+      // Play for Free! — centered in left column
+      const btnW = 380, btnX = LC - btnW/2, btnY = 340, btnH = 68;
       const pulse_l = 1 + Math.sin(this._ctaElapsed * 3.5) * 0.04;
       ctx.save();
       ctx.translate(btnX + btnW/2, btnY + btnH/2); ctx.scale(pulse_l, pulse_l); ctx.translate(-(btnX + btnW/2), -(btnY + btnH/2));
