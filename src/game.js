@@ -342,18 +342,19 @@ export class Game {
   // ─────────────────────────────────────────────────────────────────────────
 
   // Sprite sheet: 8 frames × 192×1024px, horizontal strip
-  // Box body solid center at frame y≈496 (48% from top)
-  // At scale 1.25: frame renders 240×1280 — fills the canvas exactly
+  // Box body solid center at frame y≈504 (49% from top of 1024px frame)
   static get _BOX() {
+    const isL = CW > CH;
+    const SCALE     = isL ? 0.80  : 1.25;
+    const boxCenterX = CW / 2;
+    const boxCenterY = isL ? CH * 0.56 : 660;
     return {
       FRAMES: 8, FRAME_W: 192, FRAME_H: 1024,
-      SCALE: 1.25,
-      DX: 360 - 99 * 1.25,
-      DY: 660 - 504 * 1.25,
-      // Faster durations — snappier opening
+      SCALE,
+      DX: boxCenterX - (192 * SCALE) / 2,
+      DY: boxCenterY - 504 * SCALE,
       DURS: [0.28, 0.18, 0.14, 0.11, 0.09, 0.07, 0.09, 0.35],
-      // Box opening position in canvas space (where pets spring from)
-      BOX_OPEN_CY: 580,
+      BOX_OPEN_CY: isL ? CH * 0.72 : 580,
     };
   }
 
@@ -520,7 +521,7 @@ export class Game {
       if (b.handAlpha > 0.01) {
         const isLhand = CW > CH;
         const PET_HAND_X = isLhand ? [220, 640, 1060] : [152, 362, 572];
-        const PET_HAND_Y = isLhand ? [650, 640, 650]  : [760, 750, 760];
+        const PET_HAND_Y = isLhand ? [600, 590, 600]  : [760, 750, 760];
 
         // Advance cycle timer
         b.handTimer += dt;
@@ -551,7 +552,8 @@ export class Game {
     }
 
     // Logo
-    if (this._logoImg) ctx.drawImage(this._logoImg, 72, 20, 240, 140);
+    const isLbx = CW > CH;
+    if (this._logoImg) ctx.drawImage(this._logoImg, isLbx ? 22 : 72, isLbx ? 48 : 20, isLbx ? 170 : 240, isLbx ? 120 : 140);
 
     // Flash overlay
     if (b.flashAlpha > 0.01) {
@@ -571,9 +573,9 @@ export class Game {
     // Re-init only if renderers weren't already set up by the box reveal
     if (!this._selectRenderers?.length) {
       const isL = CW > CH;
-      const scl = isL ? 2.0  : 1.35;
+      const scl = isL ? 1.7  : 1.35;
       const cxs = isL ? [220, 640, 1060] : [152, 362, 572];
-      const cys = isL ? [570, 558, 570]  : [710, 700, 710];
+      const cys = isL ? [520, 510, 520]  : [710, 700, 710];
       this._selectRenderers = CONFIG.pets.map((pet, i) => {
         const r = new PetRenderer(this._canvas);
         r.scale = scl;
@@ -590,7 +592,7 @@ export class Game {
     const isL = CW > CH;
     for (let i = 0; i < 3; i++) {
       const cx = isL ? [220, 640, 1060][i] : [152, 362, 572][i];
-      const cy = isL ? [570, 558, 570][i]  : [710, 700, 710][i];
+      const cy = isL ? [520, 510, 520][i]  : [710, 700, 710][i];
       if (Math.abs(x - cx) < 140 && Math.abs(y - cy) < 160) {
         Audio.play(`pet-${i + 1}`, { volume: 0.9 });
         const r = this._selectRenderers[i];
@@ -608,16 +610,17 @@ export class Game {
     const e = this._selectElapsed;
     const isL = CW > CH;
 
-    // Sign — smaller in landscape so pets have room
-    const sw = isL ? 240 : 420, sh = Math.round(sw * 448 / 587);
-    const signY = isL ? 8 : 70;
+    // Sign
+    const sw = isL ? 320 : 420, sh = Math.round(sw * 448 / 587);
+    const signY = isL ? 14 : 70;
     drawFrame(ctx, 'texture-elements', 'sign.png', CW/2 - sw/2, signY, sw, sh);
-    _drawBrandText(ctx, 'Who will you adopt?', CW/2, signY + sh * 0.84, isL ? 20 : 34, B.darkBrown, '#ffffff');
+    _drawBrandText(ctx, 'Who will you adopt?', CW/2, signY + sh * 0.84, isL ? 26 : 34, B.darkBrown, '#ffffff');
 
-    // Logo — smaller in landscape
-    const lw = isL ? 160 : 240, lh = isL ? 112 : 140;
-    const logoX = isL ? 20 : 72;
-    if (this._logoImg) ctx.drawImage(this._logoImg, logoX, 12, lw, lh);
+    // Logo — pushed down in landscape to clear COVER top-clip
+    const lw = isL ? 170 : 240, lh = isL ? 120 : 140;
+    const logoX = isL ? 22 : 72;
+    const logoY = isL ? 48 : 12;
+    if (this._logoImg) ctx.drawImage(this._logoImg, logoX, logoY, lw, lh);
 
     // Hand pointer tutorial
     if (e < 3.0) {
@@ -636,7 +639,7 @@ export class Game {
     }
 
     // 3 animated pets with bob
-    const baseCys = isL ? [570, 558, 570] : [710, 700, 710];
+    const baseCys = isL ? [520, 510, 520] : [710, 700, 710];
     for (let i = 0; i < this._selectRenderers.length; i++) {
       const r = this._selectRenderers[i];
       const baseCy = baseCys[i];
