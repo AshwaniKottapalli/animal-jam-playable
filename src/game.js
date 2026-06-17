@@ -1247,8 +1247,8 @@ export class Game {
 
     // Pet enters jumping up from below with accessory
     const isLcta = CW > CH;
-    const ctaPetScale = isLcta ? 1.6 : 1.4;
-    const ctaPetCx    = isLcta ? CW * 0.28 : CW / 2;
+    const ctaPetScale = isLcta ? 1.8 : 1.4;
+    const ctaPetCx    = isLcta ? CW / 2 : CW / 2;
     this._renderer.cx    = ctaPetCx;
     this._renderer.cy    = CH + 300;
     this._renderer.scale = 0.4;
@@ -1283,9 +1283,9 @@ export class Game {
   _handleCtaTap(x, y) {
     const isLct = CW > CH;
     if (isLct) {
-      // Landscape: game grid right side (x≥620), button bottom-left
-      if (x >= 620 && y >= 270 && y <= 560) { this._doInstall(); return; }
-      if (x >= 30 && x <= 390 && y >= 608 && y <= 682) { this._doInstall(); return; }
+      // Landscape: game grid right side, button bottom-center
+      if (x >= 860 && y >= 255 && y <= 560) { this._doInstall(); return; }
+      if (x >= 400 && x <= 880 && y >= 622 && y <= 696) { this._doInstall(); return; }
     } else {
       if (y >= 840 && y <= 1120) { this._doInstall(); return; }
       if (x >= CW/2 - 210 && x <= CW/2 + 210 && y >= 1135 && y <= 1205) { this._doInstall(); return; }
@@ -1321,66 +1321,66 @@ export class Game {
 
     if (isL) {
       // ── LANDSCAPE CTA ──────────────────────────────────────────────────────
-      // LEFT: logo + badge + tagline + button
-      // RIGHT: pet + 3×2 game grid
+      // Layout: LEFT col (text) | CENTER (pet) | RIGHT col (game grid)
+      // Button: bottom-center, large + prominent
 
-      // Logo — top-left
+      // Logo — y=80 clears COVER top-clip on narrow-viewport browsers
       if (this._logoImg) {
         ctx.save();
         ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 14;
-        ctx.drawImage(this._logoImg, 15, 12, 220, 155);
+        ctx.drawImage(this._logoImg, 80, 80, 200, 140);
         ctx.restore();
       }
 
-      // Badge
-      _drawSocialProofBadge(ctx, 135, 182);
+      // Badge — below logo
+      _drawSocialProofBadge(ctx, 180, 236);
 
-      // Tagline
+      // Tagline — left column
       ctx.save();
-      ctx.font = `bold 26px ${CONFIG.brand.fontDimbo}`;
+      ctx.font = `bold 24px ${CONFIG.brand.fontDimbo}`;
       ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-      ctx.lineWidth = 3; ctx.strokeStyle = B.darkBrown;
-      ctx.strokeText('Adopt, Explore, Decorate & Play', 20, 240);
+      ctx.lineWidth = 3; ctx.strokeStyle = B.darkBrown; ctx.lineJoin = 'round';
+      ctx.strokeText('Adopt, Explore, Decorate & Play', 82, 278);
       ctx.fillStyle = '#ffffff';
-      ctx.fillText('Adopt, Explore, Decorate & Play', 20, 240);
+      ctx.fillText('Adopt, Explore, Decorate & Play', 82, 278);
       ctx.restore();
       ctx.save();
-      ctx.font = `bold 38px ${CONFIG.brand.fontDimbo}`;
+      ctx.font = `bold 36px ${CONFIG.brand.fontDimbo}`;
       ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
       ctx.fillStyle = B.darkBrown;
-      ctx.fillText(`Games with YOUR ${petLabel}!`, 20, 288);
+      ctx.fillText(`Games with YOUR ${petLabel}!`, 82, 320);
       ctx.restore();
 
-      // Pet
+      // Pet — centered
       this._renderer.draw();
 
-      // 3×2 game icon grid — right half
-      const ICN_L = 118, ICN_GAP_L = 10, COLS_L = 3;
+      // 3×2 game icon grid — right column
+      const ICN_L = 118, ICN_GAP_L = 12, COLS_L = 3;
       const gridW_L = COLS_L * ICN_L + (COLS_L - 1) * ICN_GAP_L;
-      const gridX_L = CW - gridW_L - 22;
-
+      const gridX_L = CW - gridW_L - 30;
       for (let row = 0; row < 2; row++) {
         for (let col = 0; col < COLS_L; col++) {
           const idx = row * COLS_L + col;
           const img = this._gameImgs?.[idx];
           const ix  = gridX_L + col * (ICN_L + ICN_GAP_L);
-          const iy  = 278 + row * (ICN_L + ICN_GAP_L);
+          const iy  = 260 + row * (ICN_L + ICN_GAP_L);
           _drawGameIconMini(ctx, img, ix, iy, ICN_L);
         }
       }
 
-      // Play for Free! button — bottom-left
-      const pulse_l = 1 + Math.sin(this._ctaElapsed * 3.5) * 0.032;
+      // Play for Free! — LARGE, bottom-center, max visibility
+      const btnW = 480, btnX = (CW - btnW) / 2;
+      const pulse_l = 1 + Math.sin(this._ctaElapsed * 3.5) * 0.04;
       ctx.save();
-      ctx.translate(195, 645); ctx.scale(pulse_l, pulse_l); ctx.translate(-195, -645);
-      _drawCTAButton(ctx, 15, 611, 360, 68);
+      ctx.translate(CW/2, 662); ctx.scale(pulse_l, pulse_l); ctx.translate(-CW/2, -662);
+      _drawCTAButton(ctx, btnX, 628, btnW, 68);
       ctx.restore();
 
       // Copyright
       ctx.font = `11px ${CONFIG.brand.fontBody}`;
-      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
       ctx.fillStyle = 'rgba(255,255,255,0.28)';
-      ctx.fillText('© 2026 WildWorks. All rights reserved.', 15, 698);
+      ctx.fillText('© 2026 WildWorks. All rights reserved.', CW/2, 700);
     } else {
       // ── PORTRAIT CTA (unchanged) ────────────────────────────────────────────
       if (this._logoImg) {
