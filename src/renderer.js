@@ -117,7 +117,7 @@ function _drawAnchored(ctx, fd, cx, cy, scale) {
 
   const dx = cx - dw / 2;
 
-  const effectiveH = Math.max(sourceSize.w, sourceSize.h);
+  const effectiveH = sourceSize.h;
   const cyFloor    = cy + (effectiveH / 2) * scale;
   const dy         = cyFloor - dh;
 
@@ -145,7 +145,7 @@ function _drawAnchored(ctx, fd, cx, cy, scale) {
  *         + accSss.y * scale              ← apply the acc's own spriteSourceSize.y
  */
 function _drawAccessoryAnchored(ctx, afd, petFd, cx, cy, scale, topShift = 0, petSssYOffset = 0, petSssXOffset = 0) {
-  const petSrcH = Math.max(petFd.sourceSize.w, petFd.sourceSize.h);
+  const petSrcH = petFd.sourceSize.h;
   const accSrcH = afd.sourceSize.h;
   const accSrcW = afd.sourceSize.w;
   const sss     = afd.spriteSourceSize;
