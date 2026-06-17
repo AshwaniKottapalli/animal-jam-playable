@@ -746,7 +746,7 @@ export class Game {
 
     // Next button
     const isLc = CW > CH;
-    const [nxL, nxR, nyT, nyB] = isLc ? [1040, 1260, 620, 706] : [CW/2-120, CW/2+120, 950, 1056];
+    const [nxL, nxR, nyT, nyB] = isLc ? [CW-310, CW-30, CH-100, CH-18] : [CW/2-120, CW/2+120, 950, 1056];
     if (x >= nxL && x <= nxR && y >= nyT && y <= nyB) {
       Audio.play('timpani', { volume: 0.5 });
       this._petFlash = 1.0;
@@ -864,8 +864,8 @@ export class Game {
     // Label + Next button
     const isLd = CW > CH;
     if (isLd) {
-      _drawBrandText(ctx, 'Pick a color!', CW * 0.80, 78, 28, B.darkBrown, '#ffffff');
-      drawFrame(ctx, 'texture-elements', 'btn-next.png', 1040, 626, 220, 80);
+      _drawBrandText(ctx, 'Pick a color!', CW - 200, 140, 28, B.darkBrown, '#ffffff');
+      drawFrame(ctx, 'texture-elements', 'btn-next.png', CW - 310, CH - 100, 280, 82);
     } else {
       _drawBrandText(ctx, 'Pick a color!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
       drawFrame(ctx, 'texture-elements', 'btn-next.png', CW/2 - 120, 950, 240, 106);
@@ -925,7 +925,7 @@ export class Game {
 
     // Adopt button
     const isLat = CW > CH;
-    const [axL, axR, ayT, ayB] = isLat ? [1040, 1260, 620, 706] : [CW/2-120, CW/2+120, 950, 1056];
+    const [axL, axR, ayT, ayB] = isLat ? [CW-310, CW-30, CH-100, CH-18] : [CW/2-120, CW/2+120, 950, 1056];
     if (x >= axL && x <= axR && y >= ayT && y <= ayB) {
       Audio.play('timpani', { volume: 0.5 });
       this._petFlash = 1.0;
@@ -1039,8 +1039,8 @@ export class Game {
     // Label + Adopt button
     const isLacc = CW > CH;
     if (isLacc) {
-      _drawBrandText(ctx, 'Pick an accessory!', CW * 0.80, 78, 28, B.darkBrown, '#ffffff');
-      drawFrame(ctx, 'texture-elements', 'btn-adopt.png', 1040, 626, 220, 80);
+      _drawBrandText(ctx, 'Pick an accessory!', CW - 200, 140, 28, B.darkBrown, '#ffffff');
+      drawFrame(ctx, 'texture-elements', 'btn-adopt.png', CW - 310, CH - 100, 280, 82);
     } else {
       _drawBrandText(ctx, 'Pick an accessory!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
       drawFrame(ctx, 'texture-elements', 'btn-adopt.png', CW/2 - 120, 950, 240, 106);
