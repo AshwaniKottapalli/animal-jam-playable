@@ -34,10 +34,10 @@ function _computeLayout(isLandscape) {
     ARC_ORB_Y   = [400, 315, 400];
     RUG_FINAL_Y = 745;
   } else {
-    FLOOR_Y     = 530;
-    ARC_ORB_X   = [120, 120, 120];     // left panel
-    ARC_ORB_Y   = [140, 340, 540];     // evenly spread: 200px gaps
-    RUG_FINAL_Y = 475;
+    FLOOR_Y     = 555;
+    ARC_ORB_X   = [120, 120, 120];
+    ARC_ORB_Y   = [140, 340, 540];
+    RUG_FINAL_Y = 500;
   }
 }
 
@@ -669,10 +669,9 @@ export class Game {
     this._selectRenderers = [];
 
     // Zoom tween — pet stays planted on the dock (floor-anchored cy)
-    const zoomScale = CW > CH ? 3.0 : 2.8;
-    const zoomCx    = CW > CH ? CW * 0.67 : CW / 2;
+    const zoomScale = CW > CH ? 2.6 : 2.8;
     const zoomCy = this._floorCy(zoomScale);
-    tween(this._renderer, { cx: zoomCx, cy: zoomCy, scale: zoomScale }, 0.65, Ease.easeOutBack);
+    tween(this._renderer, { cx: CW / 2, cy: zoomCy, scale: zoomScale }, 0.65, Ease.easeOutBack);
 
     // Background zooms in sync with the pet
     this._bgZoom = 1.0;
@@ -708,7 +707,7 @@ export class Game {
 
     const isL = CW > CH;
     this._renderer.cx    = CW / 2;
-    this._renderer.scale = isL ? 3.0 : 2.5;
+    this._renderer.scale = isL ? 2.5 : 2.5;
     this._renderer.cy    = this._floorCy(this._renderer.scale);
     this._renderer.playAnim(this.petId, 'idle-1'); this._applyHeadOffsets(this.petId, 0);
     this._renderer.paused = false;
@@ -865,7 +864,7 @@ export class Game {
     // Label + Next button
     const isLd = CW > CH;
     if (isLd) {
-      _drawBrandText(ctx, 'Pick a color!', ARC_ORB_X[1], 78, 26, B.darkBrown, '#ffffff');
+      _drawBrandText(ctx, 'Pick a color!', CW * 0.80, 78, 28, B.darkBrown, '#ffffff');
       drawFrame(ctx, 'texture-elements', 'btn-next.png', 1040, 626, 220, 80);
     } else {
       _drawBrandText(ctx, 'Pick a color!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
@@ -887,7 +886,7 @@ export class Game {
     };
     const isLa = CW > CH;
     this._renderer.cx    = CW / 2;
-    this._renderer.scale = isLa ? 3.0 : 2.5;
+    this._renderer.scale = isLa ? 2.5 : 2.5;
     this._renderer.cy    = this._floorCy(this._renderer.scale);
     this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`); this._applyHeadOffsets(this.petId, this.colorIdx);
     
@@ -1040,7 +1039,7 @@ export class Game {
     // Label + Adopt button
     const isLacc = CW > CH;
     if (isLacc) {
-      _drawBrandText(ctx, 'Pick an accessory!', ARC_ORB_X[1], 78, 26, B.darkBrown, '#ffffff');
+      _drawBrandText(ctx, 'Pick an accessory!', CW * 0.80, 78, 28, B.darkBrown, '#ffffff');
       drawFrame(ctx, 'texture-elements', 'btn-adopt.png', 1040, 626, 220, 80);
     } else {
       _drawBrandText(ctx, 'Pick an accessory!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
