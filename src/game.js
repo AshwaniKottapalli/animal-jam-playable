@@ -34,10 +34,10 @@ function _computeLayout(isLandscape) {
     ARC_ORB_Y   = [400, 315, 400];
     RUG_FINAL_Y = 745;
   } else {
-    FLOOR_Y     = 590;
-    ARC_ORB_X   = [200, 200, 200];   // left panel, stacked
+    FLOOR_Y     = 530;
+    ARC_ORB_X   = [200, 200, 200];
     ARC_ORB_Y   = [210, 360, 510];
-    RUG_FINAL_Y = 535;
+    RUG_FINAL_Y = 475;
   }
 }
 
@@ -521,7 +521,7 @@ export class Game {
       if (b.handAlpha > 0.01) {
         const isLhand = CW > CH;
         const PET_HAND_X = isLhand ? [220, 640, 1060] : [152, 362, 572];
-        const PET_HAND_Y = isLhand ? [600, 590, 600]  : [760, 750, 760];
+        const PET_HAND_Y = isLhand ? [540, 528, 540]  : [760, 750, 760];
 
         // Advance cycle timer
         b.handTimer += dt;
@@ -575,7 +575,7 @@ export class Game {
       const isL = CW > CH;
       const scl = isL ? 1.7  : 1.35;
       const cxs = isL ? [220, 640, 1060] : [152, 362, 572];
-      const cys = isL ? [520, 510, 520]  : [710, 700, 710];
+      const cys = isL ? [460, 448, 460]  : [710, 700, 710];
       this._selectRenderers = CONFIG.pets.map((pet, i) => {
         const r = new PetRenderer(this._canvas);
         r.scale = scl;
@@ -592,7 +592,7 @@ export class Game {
     const isL = CW > CH;
     for (let i = 0; i < 3; i++) {
       const cx = isL ? [220, 640, 1060][i] : [152, 362, 572][i];
-      const cy = isL ? [520, 510, 520][i]  : [710, 700, 710][i];
+      const cy = isL ? [460, 448, 460][i]  : [710, 700, 710][i];
       if (Math.abs(x - cx) < 140 && Math.abs(y - cy) < 160) {
         Audio.play(`pet-${i + 1}`, { volume: 0.9 });
         const r = this._selectRenderers[i];
@@ -612,7 +612,7 @@ export class Game {
 
     // Sign
     const sw = isL ? 420 : 420, sh = Math.round(sw * 448 / 587);
-    const signY = isL ? 14 : 70;
+    const signY = isL ? 2 : 70;
     drawFrame(ctx, 'texture-elements', 'sign.png', CW/2 - sw/2, signY, sw, sh);
     _drawBrandText(ctx, 'Who will you adopt?', CW/2, signY + sh * 0.84, isL ? 32 : 34, B.darkBrown, '#ffffff');
 
@@ -639,7 +639,7 @@ export class Game {
     }
 
     // 3 animated pets with bob
-    const baseCys = isL ? [520, 510, 520] : [710, 700, 710];
+    const baseCys = isL ? [460, 448, 460] : [710, 700, 710];
     for (let i = 0; i < this._selectRenderers.length; i++) {
       const r = this._selectRenderers[i];
       const baseCy = baseCys[i];
