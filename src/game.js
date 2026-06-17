@@ -17,19 +17,29 @@ const STATE = {
   CTA:       'cta',
 };
 
-const CW = 720;
-const CH = 1280;
+let CW = 720;
+let CH = 1280;
 const B  = CONFIG.brand;
 
-// Dock floor Y — where the pet's feet sit in the canvas
-const FLOOR_Y = 800;
+// Layout constants — updated by setOrientation(), read by draw/hit-test methods
+let FLOOR_Y    = 800;
+let ARC_ORB_X  = [180, 360, 540];
+let ARC_ORB_Y  = [400, 315, 400];
+let RUG_FINAL_Y = 745;
 
-// Arc orb positions for the floating color picker above the pet
-const ARC_ORB_X = [180, 360, 540];
-const ARC_ORB_Y = [400, 315, 400]; // final resting positions (above pet head)
-
-// Rug slides up from below when pet is selected; bottom anchored just below FLOOR_Y
-const RUG_FINAL_Y = FLOOR_Y - 55; // top of rug (rug height ~110px, bottom at FLOOR_Y + 55)
+function _computeLayout(isLandscape) {
+  if (!isLandscape) {
+    FLOOR_Y     = 800;
+    ARC_ORB_X   = [180, 360, 540];
+    ARC_ORB_Y   = [400, 315, 400];
+    RUG_FINAL_Y = 745;
+  } else {
+    FLOOR_Y     = 540;
+    ARC_ORB_X   = [200, 200, 200];   // left panel, stacked
+    ARC_ORB_Y   = [210, 360, 510];
+    RUG_FINAL_Y = 485;
+  }
+}
 
 export class Game {
   constructor(app) {
@@ -76,6 +86,15 @@ export class Game {
     this._canvas.addEventListener('pointerdown', e => this._onPointerDown(e));
     this._canvas.addEventListener('pointermove', e => this._onPointerMove(e));
     this._canvas.addEventListener('pointerup',   e => this._onPointerUp(e));
+  }
+
+  // ── Orientation ──────────────────────────────────────────────────────────
+  setOrientation(isLandscape) {
+    const newCW = isLandscape ? 1280 : 720;
+    const newCH = isLandscape ? 720  : 1280;
+    if (CW === newCW && CH === newCH) return; // no change
+    CW = newCW; CH = newCH;
+    _computeLayout(isLandscape);
   }
 
   // ── Story caption ─────────────────────────────────────────────────────────
@@ -376,9 +395,10 @@ export class Game {
   async _runBoxSequence() {
     const B2 = Game._BOX;
     const b  = this._box;
-    const FINAL_CX = [152, 362, 572];
-    const FINAL_CY = [710, 700, 710];
-    const FINAL_SCALE = 1.35;
+    const isLbox = CW > CH;
+    const FINAL_CX    = isLbox ? [220, 640, 1060] : [152, 362, 572];
+    const FINAL_CY    = isLbox ? [530, 520, 530]  : [710, 700, 710];
+    const FINAL_SCALE = isLbox ? 1.6 : 1.35;
 
     // ── Phase 1: play box opening frames ──────────────────────────────────
     for (let f = 0; f < B2.FRAMES; f++) {
@@ -439,15 +459,19 @@ export class Game {
     this._box.done = true;
     this._uiRoot.innerHTML = ''; // Remove overlay so canvas gets taps
     this._box.subPhase = 'OPEN';
+    const isLopen = CW > CH;
+    const openCX  = isLopen ? [220, 640, 1060] : [152, 362, 572];
+    const openCY  = isLopen ? [530, 520, 530]  : [710, 700, 710];
+    const openScl = isLopen ? 1.6 : 1.35;
     CONFIG.pets.forEach((pet, i) => {
       if (!this._selectRenderers[i]) return;
-      this._selectRenderers[i].cx    = [152, 362, 572][i];
-      this._selectRenderers[i].cy    = [710, 700, 710][i];
-      this._selectRenderers[i].scale = 1.35;
+      this._selectRenderers[i].cx    = openCX[i];
+      this._selectRenderers[i].cy    = openCY[i];
+      this._selectRenderers[i].scale = openScl;
     });
-    this._box.petCxs    = [152, 362, 572];
-    this._box.petCys    = [710, 700, 710];
-    this._box.petScales = [1.35, 1.35, 1.35];
+    this._box.petCxs    = [...openCX];
+    this._box.petCys    = [...openCY];
+    this._box.petScales = [openScl, openScl, openScl];
     this._box.petAlphas = [1, 1, 1];
     this._box.signY     = 70;
     this._box.handAlpha = 1;
@@ -493,8 +517,9 @@ export class Game {
 
       // Hand pointer — cycles pet0 → pet1 → pet2 → pet0 ...
       if (b.handAlpha > 0.01) {
-        const PET_HAND_X = [152, 362, 572];
-        const PET_HAND_Y = [760, 750, 760]; // just below each pet
+        const isLhand = CW > CH;
+        const PET_HAND_X = isLhand ? [220, 640, 1060] : [152, 362, 572];
+        const PET_HAND_Y = isLhand ? [610, 600, 610]  : [760, 750, 760];
 
         // Advance cycle timer
         b.handTimer += dt;
@@ -544,11 +569,15 @@ export class Game {
 
     // Re-init only if renderers weren't already set up by the box reveal
     if (!this._selectRenderers?.length) {
+      const isL = CW > CH;
+      const scl = isL ? 1.6  : 1.35;
+      const cxs = isL ? [220, 640, 1060] : [152, 362, 572];
+      const cys = isL ? [530, 520, 530]  : [710, 700, 710];
       this._selectRenderers = CONFIG.pets.map((pet, i) => {
         const r = new PetRenderer(this._canvas);
-        r.scale = 1.35;
-        r.cx = [152, 362, 572][i];
-        r.cy = [710, 700, 710][i];
+        r.scale = scl;
+        r.cx = cxs[i];
+        r.cy = cys[i];
         r.playAnim(pet.id, 'idle-1');
         r._frame = Math.floor(Math.random() * 8);
         return r;
@@ -557,10 +586,11 @@ export class Game {
   }
 
   _handleSelectTap(x, y) {
+    const isL = CW > CH;
     for (let i = 0; i < 3; i++) {
-      const cx = [152, 362, 572][i];
-      const cy = [710, 700, 710][i];
-      if (Math.abs(x - cx) < 120 && Math.abs(y - cy) < 140) {
+      const cx = isL ? [220, 640, 1060][i] : [152, 362, 572][i];
+      const cy = isL ? [530, 520, 530][i]  : [710, 700, 710][i];
+      if (Math.abs(x - cx) < 140 && Math.abs(y - cy) < 160) {
         Audio.play(`pet-${i + 1}`, { volume: 0.9 });
         const r = this._selectRenderers[i];
         if (r) tween(r, { scale: 1.7 }, 0.1, Ease.easeOutCubic,
@@ -575,22 +605,24 @@ export class Game {
   _drawSelect(ctx, dt) {
     this._selectElapsed = (this._selectElapsed || 0) + dt;
     const e = this._selectElapsed;
+    const isL = CW > CH;
 
     // Sign
-    const sw = 420, sh = Math.round(420 * 448 / 587);
-    drawFrame(ctx, 'texture-elements', 'sign.png', CW/2 - sw/2, 70, sw, sh);
-
-    // Sign text (3D brand style)
-    _drawBrandText(ctx, 'Who will you adopt?', CW/2, 70 + sh * 0.84, 34, B.darkBrown, '#ffffff');
+    const sw = isL ? 380 : 420, sh = Math.round(sw * 448 / 587);
+    const signY = isL ? 20 : 70;
+    drawFrame(ctx, 'texture-elements', 'sign.png', CW/2 - sw/2, signY, sw, sh);
+    _drawBrandText(ctx, 'Who will you adopt?', CW/2, signY + sh * 0.84, isL ? 28 : 34, B.darkBrown, '#ffffff');
 
     // Logo
-    if (this._logoImg) ctx.drawImage(this._logoImg, 10, 20, 240, 140);
+    const lw = isL ? 200 : 240, lh = isL ? 140 : 140;
+    if (this._logoImg) ctx.drawImage(this._logoImg, 10, 20, lw, lh);
 
-    // Hand pointer tutorial (fades after 2.5s)
+    // Hand pointer tutorial
     if (e < 3.0) {
       const handAlpha = Math.max(0, 1 - (e - 2.0));
-      const handX = 280 + Math.sin(e * 1.8) * 130;
-      const handY = 830;
+      const cxs = isL ? [220, 640, 1060] : [152, 362, 572];
+      const handX = cxs[0] + (cxs[2] - cxs[0]) * 0.5 + Math.sin(e * 1.8) * (cxs[2] - cxs[0]) * 0.45;
+      const handY = isL ? 620 : 830;
       const fd = getFrame('texture-elements', 'hand.png');
       if (fd && handAlpha > 0) {
         ctx.save();
@@ -602,9 +634,10 @@ export class Game {
     }
 
     // 3 animated pets with bob
+    const baseCys = isL ? [530, 520, 530] : [710, 700, 710];
     for (let i = 0; i < this._selectRenderers.length; i++) {
       const r = this._selectRenderers[i];
-      const baseCy = [710, 700, 710][i];
+      const baseCy = baseCys[i];
       r.cy = baseCy + Math.sin(e * 2 + i * 2.1) * 5;
       r.update(dt);
       r.draw();
@@ -630,8 +663,10 @@ export class Game {
     this._selectRenderers = [];
 
     // Zoom tween — pet stays planted on the dock (floor-anchored cy)
-    const zoomCy = this._floorCy(2.8);
-    tween(this._renderer, { cx: CW/2, cy: zoomCy, scale: 2.8 }, 0.65, Ease.easeOutBack);
+    const zoomScale = CW > CH ? 3.0 : 2.8;
+    const zoomCx    = CW > CH ? CW * 0.67 : CW / 2;
+    const zoomCy = this._floorCy(zoomScale);
+    tween(this._renderer, { cx: zoomCx, cy: zoomCy, scale: zoomScale }, 0.65, Ease.easeOutBack);
 
     // Background zooms in sync with the pet
     this._bgZoom = 1.0;
@@ -665,9 +700,10 @@ export class Game {
       elapsed:   0,
     };
 
-    this._renderer.cx    = CW / 2;
-    this._renderer.cy    = this._floorCy(2.5); // feet on the dock
-    this._renderer.scale = 2.5;
+    const isL = CW > CH;
+    this._renderer.cx    = isL ? CW * 0.69 : CW / 2;
+    this._renderer.scale = isL ? 3.0 : 2.5;
+    this._renderer.cy    = this._floorCy(this._renderer.scale);
     this._renderer.playAnim(this.petId, 'idle-1'); this._applyHeadOffsets(this.petId, 0);
     this._renderer.paused = false;
     this._renderer.stopAccessory();
@@ -703,8 +739,10 @@ export class Game {
       }
     }
 
-    // Next button (fixed position, on the dock)
-    if (x >= CW/2 - 120 && x <= CW/2 + 120 && y >= 950 && y <= 1056) {
+    // Next button
+    const isLc = CW > CH;
+    const [nxL, nxR, nyT, nyB] = isLc ? [940, 1180, 590, 660] : [CW/2-120, CW/2+120, 950, 1056];
+    if (x >= nxL && x <= nxR && y >= nyT && y <= nyB) {
       Audio.play('timpani', { volume: 0.5 });
       this._petFlash = 1.0;
       tween(this, { _petFlash: 0 }, 0.4, Ease.easeOutCubic);
@@ -722,12 +760,14 @@ export class Game {
     const e = this._color.elapsed;
 
     // Soft spotlight behind pet
+    const isLs = CW > CH;
+    const petCx = isLs ? CW * 0.69 : CW / 2;
     const slFd = getFrame('texture-custom-elements', 'color-light.png');
     if (slFd) {
       ctx.save();
       ctx.globalAlpha = 0.45;
       ctx.drawImage(slFd.image, slFd.frame.x, slFd.frame.y, slFd.frame.w, slFd.frame.h,
-        CW/2 - 190, FLOOR_Y - 420, 380, 380);
+        petCx - 190, FLOOR_Y - 420, 380, 380);
       ctx.restore();
     }
 
@@ -816,11 +856,15 @@ export class Game {
       ctx.restore();
     }
 
-    // "Pick a color!" instruction — sits clearly above the arc orbs
-    _drawBrandText(ctx, 'Pick a color!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
-
-    // Next button — moved up onto the dock area
-    drawFrame(ctx, 'texture-elements', 'btn-next.png', CW/2 - 120, 950, 240, 106);
+    // Label + Next button
+    const isLd = CW > CH;
+    if (isLd) {
+      _drawBrandText(ctx, 'Pick a color!', ARC_ORB_X[1], 120, 26, B.darkBrown, '#ffffff');
+      drawFrame(ctx, 'texture-elements', 'btn-next.png', 940, 600, 240, 80);
+    } else {
+      _drawBrandText(ctx, 'Pick a color!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
+      drawFrame(ctx, 'texture-elements', 'btn-next.png', CW/2 - 120, 950, 240, 106);
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -835,8 +879,10 @@ export class Game {
       selected:  -1,
       elapsed:   0,
     };
-    this._renderer.cy    = this._floorCy(2.5);
-    this._renderer.scale = 2.5;
+    const isLa = CW > CH;
+    this._renderer.cx    = isLa ? CW * 0.69 : CW / 2;
+    this._renderer.scale = isLa ? 3.0 : 2.5;
+    this._renderer.cy    = this._floorCy(this._renderer.scale);
     this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`); this._applyHeadOffsets(this.petId, this.colorIdx);
     
     this._renderer.stopAccessory();
@@ -872,8 +918,10 @@ export class Game {
       }
     }
 
-    // Adopt button — on the dock, same level as color screen
-    if (x >= CW/2 - 120 && x <= CW/2 + 120 && y >= 950 && y <= 1056) {
+    // Adopt button
+    const isLat = CW > CH;
+    const [axL, axR, ayT, ayB] = isLat ? [940, 1180, 590, 660] : [CW/2-120, CW/2+120, 950, 1056];
+    if (x >= axL && x <= axR && y >= ayT && y <= ayB) {
       Audio.play('timpani', { volume: 0.5 });
       this._petFlash = 1.0;
       tween(this, { _petFlash: 0 }, 0.4, Ease.easeOutCubic);
@@ -983,11 +1031,15 @@ export class Game {
       ctx.restore();
     }
 
-    // "Pick an accessory!" instruction above the arc orbs
-    _drawBrandText(ctx, 'Pick an accessory!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
-
-    // Adopt button — moved up onto the dock (same level as color screen Next)
-    drawFrame(ctx, 'texture-elements', 'btn-adopt.png', CW/2 - 120, 950, 240, 106);
+    // Label + Adopt button
+    const isLacc = CW > CH;
+    if (isLacc) {
+      _drawBrandText(ctx, 'Pick an accessory!', ARC_ORB_X[1], 120, 26, B.darkBrown, '#ffffff');
+      drawFrame(ctx, 'texture-elements', 'btn-adopt.png', 940, 600, 240, 80);
+    } else {
+      _drawBrandText(ctx, 'Pick an accessory!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
+      drawFrame(ctx, 'texture-elements', 'btn-adopt.png', CW/2 - 120, 950, 240, 106);
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -996,10 +1048,11 @@ export class Game {
   _toMinigame() {
     this.state = STATE.MINIGAME;
 
-    // Smaller scale so cards fit below — pet on dock floor, slightly smaller
-    this._renderer.cx    = CW / 2;
-    this._renderer.cy    = this._floorCy(2.0);
-    this._renderer.scale = 2.0;
+    // Pet: smaller in minigame so cards fit; landscape → pet bottom-right
+    const isLm = CW > CH;
+    this._renderer.cx    = isLm ? CW * 0.76 : CW / 2;
+    this._renderer.scale = isLm ? 1.8 : 2.0;
+    this._renderer.cy    = this._floorCy(this._renderer.scale);
     this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`); this._applyHeadOffsets(this.petId, this.colorIdx);
     if (this.accIdx >= 0) this._renderer.playAccessory(this.petId, this.accIdx, this.colorIdx);
     else this._renderer.stopAccessory();
@@ -1026,17 +1079,18 @@ export class Game {
     c.scrollX += 140 * dt; // slightly snappier than before
 
     const CARDS = CONFIG.gameCards;
-    const CRD_W = 220, CRD_H = 230, CRD_GAP = 20; // smaller cards
+    const isLmg = CW > CH;
+    const CRD_W = isLmg ? 240 : 220, CRD_H = isLmg ? 210 : 230, CRD_GAP = 20;
     const STEP  = CRD_W + CRD_GAP;
     const TOTAL = CARDS.length * STEP;
     // Cards sit BELOW the pet on the dock shelf
-    const cardY = 630;
+    const cardY = isLmg ? 80 : 630;
 
     // Seamless loop
     const rawX = (c.scrollX + c.swipeDelta) % TOTAL;
 
     // Heading above the pet
-    _drawBrandText(ctx, 'Discover Games Inside!', CW/2, 42, 26, B.darkBrown, B.orange);
+    _drawBrandText(ctx, 'Discover Games Inside!', isLmg ? CW*0.40 : CW/2, isLmg ? 310 : 42, isLmg ? 22 : 26, B.darkBrown, B.orange);
 
     // Pet (larger, front and center above the cards)
     this._renderer.draw();
@@ -1186,15 +1240,17 @@ export class Game {
     this._show(null);
 
     // Pet enters jumping up from below with accessory
-    this._renderer.cx    = CW / 2;
-    this._renderer.cy    = CH + 300;   // off-screen bottom
+    const isLcta = CW > CH;
+    const ctaPetScale = isLcta ? 1.6 : 1.4;
+    const ctaPetCx    = isLcta ? CW * 0.28 : CW / 2;
+    this._renderer.cx    = ctaPetCx;
+    this._renderer.cy    = CH + 300;
     this._renderer.scale = 0.4;
     this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`); this._applyHeadOffsets(this.petId, this.colorIdx);
     if (this.accIdx >= 0) this._renderer.playAccessory(this.petId, this.accIdx, this.colorIdx);
 
-    // Jump tween — smaller scale so pet sits on the rug, not towering above it
-    const finalCy = this._floorCy(1.4);
-    tween(this._renderer, { cy: finalCy, scale: 1.4 }, 0.75, Ease.easeOutBack);
+    const finalCy = this._floorCy(ctaPetScale);
+    tween(this._renderer, { cx: ctaPetCx, cy: finalCy, scale: ctaPetScale }, 0.75, Ease.easeOutBack);
     tween(this, { _bgZoom: 1.0 }, 0.6, Ease.easeOutCubic);
 
     // Celebration on landing
@@ -1219,10 +1275,15 @@ export class Game {
   }
 
   _handleCtaTap(x, y) {
-    // Game icon grid (3×2, y=840–1116)
-    if (y >= 840 && y <= 1120) { this._doInstall(); return; }
-    // Play for Free! button at bottom
-    if (x >= CW/2 - 210 && x <= CW/2 + 210 && y >= 1135 && y <= 1205) { this._doInstall(); return; }
+    const isLct = CW > CH;
+    if (isLct) {
+      // Landscape: game grid right side (x≥620), button bottom-left
+      if (x >= 620 && y >= 270 && y <= 560) { this._doInstall(); return; }
+      if (x >= 30 && x <= 390 && y >= 608 && y <= 682) { this._doInstall(); return; }
+    } else {
+      if (y >= 840 && y <= 1120) { this._doInstall(); return; }
+      if (x >= CW/2 - 210 && x <= CW/2 + 210 && y >= 1135 && y <= 1205) { this._doInstall(); return; }
+    }
   }
   _doInstall() {
     this._particles.burst(CW/2, FLOOR_Y - 100);
@@ -1233,6 +1294,7 @@ export class Game {
   _drawCTA(ctx, dt) {
     const c = this._carousel;
     c.elapsed += dt;
+    const isL = CW > CH;
 
     // Sparse confetti
     if (Math.random() < 0.06) {
@@ -1240,69 +1302,125 @@ export class Game {
         { kind: 'confetti', speed: 125, gravity: 200, lifetime: 2.5 });
     }
 
-    // Dark gradient over bottom 40%
-    const darkGrad = ctx.createLinearGradient(0, CH * 0.58, 0, CH);
+    // Dark gradient over bottom section
+    const gradStart = isL ? CH * 0.50 : CH * 0.58;
+    const darkGrad = ctx.createLinearGradient(0, gradStart, 0, CH);
     darkGrad.addColorStop(0,   'rgba(0,0,0,0)');
     darkGrad.addColorStop(0.3, 'rgba(0,0,0,0.38)');
     darkGrad.addColorStop(1,   'rgba(0,0,0,0.78)');
     ctx.fillStyle = darkGrad;
-    ctx.fillRect(0, CH * 0.58, CW, CH);
+    ctx.fillRect(0, gradStart, CW, CH);
 
-    // 1. Animal Jam logo — moved down slightly for better breathing room
-    if (this._logoImg) {
-      ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 18;
-      ctx.drawImage(this._logoImg, CW/2 - 148, 42, 296, 208);
-      ctx.restore();
-    }
-
-    // 2. Social proof badge — right below logo
-    _drawSocialProofBadge(ctx, CW/2, 262);
-
-    // 4. Tagline — above the pet, in the scenic sky zone (bigger + readable)
     const petLabel = (CONFIG.pets[this.petIdx]?.label ?? 'Pet').toUpperCase();
-    ctx.save();
-    ctx.font = `bold 36px ${CONFIG.brand.fontDimbo}`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.lineWidth = 4; ctx.strokeStyle = B.darkBrown;
-    ctx.strokeText('Adopt, Explore, Decorate & Play', CW/2, 352);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 352);
-    ctx.restore();
-    _drawBrandText(ctx, `Games with YOUR ${petLabel}!`, CW/2, 422, 58, B.darkBrown, B.orange);
 
-    // 5. Pet on rug (hero)
-    this._renderer.draw();
+    if (isL) {
+      // ── LANDSCAPE CTA ──────────────────────────────────────────────────────
+      // LEFT: logo + badge + tagline + button
+      // RIGHT: pet + 3×2 game grid
 
-    // 6. 3×2 game icon grid — all 6 games, centered within mobile-safe zone
-    // Safe zone: canvas x=80–640 (accounts for COVER clipping on narrow phones)
-    // gridW = 3*132 + 2*12 = 420px → startX = (720-420)/2 = 150 ✓ safe
-    const ICN = 132, ICN_GAP = 12, COLS = 3;
-    const gridW = COLS * ICN + (COLS - 1) * ICN_GAP;
-    const gridX = (CW - gridW) / 2;  // 150
-
-    for (let row = 0; row < 2; row++) {
-      for (let col = 0; col < COLS; col++) {
-        const idx = row * COLS + col;
-        const img = this._gameImgs?.[idx];
-        const ix  = gridX + col * (ICN + ICN_GAP);
-        const iy  = 840 + row * (ICN + ICN_GAP);  // row0: y=840, row1: y=984
-        _drawGameIconMini(ctx, img, ix, iy, ICN);
+      // Logo — top-left
+      if (this._logoImg) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 14;
+        ctx.drawImage(this._logoImg, 15, 12, 220, 155);
+        ctx.restore();
       }
+
+      // Badge
+      _drawSocialProofBadge(ctx, 135, 182);
+
+      // Tagline
+      ctx.save();
+      ctx.font = `bold 26px ${CONFIG.brand.fontDimbo}`;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.lineWidth = 3; ctx.strokeStyle = B.darkBrown;
+      ctx.strokeText('Adopt, Explore, Decorate & Play', 20, 240);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('Adopt, Explore, Decorate & Play', 20, 240);
+      ctx.restore();
+      ctx.save();
+      ctx.font = `bold 38px ${CONFIG.brand.fontDimbo}`;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = B.darkBrown;
+      ctx.fillText(`Games with YOUR ${petLabel}!`, 20, 288);
+      ctx.restore();
+
+      // Pet
+      this._renderer.draw();
+
+      // 3×2 game icon grid — right half
+      const ICN_L = 118, ICN_GAP_L = 10, COLS_L = 3;
+      const gridW_L = COLS_L * ICN_L + (COLS_L - 1) * ICN_GAP_L;
+      const gridX_L = CW - gridW_L - 22;
+
+      for (let row = 0; row < 2; row++) {
+        for (let col = 0; col < COLS_L; col++) {
+          const idx = row * COLS_L + col;
+          const img = this._gameImgs?.[idx];
+          const ix  = gridX_L + col * (ICN_L + ICN_GAP_L);
+          const iy  = 278 + row * (ICN_L + ICN_GAP_L);
+          _drawGameIconMini(ctx, img, ix, iy, ICN_L);
+        }
+      }
+
+      // Play for Free! button — bottom-left
+      const pulse_l = 1 + Math.sin(this._ctaElapsed * 3.5) * 0.032;
+      ctx.save();
+      ctx.translate(195, 645); ctx.scale(pulse_l, pulse_l); ctx.translate(-195, -645);
+      _drawCTAButton(ctx, 15, 611, 360, 68);
+      ctx.restore();
+
+      // Copyright
+      ctx.font = `11px ${CONFIG.brand.fontBody}`;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      ctx.fillStyle = 'rgba(255,255,255,0.28)';
+      ctx.fillText('© 2026 WildWorks. All rights reserved.', 15, 698);
+    } else {
+      // ── PORTRAIT CTA (unchanged) ────────────────────────────────────────────
+      if (this._logoImg) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 18;
+        ctx.drawImage(this._logoImg, CW/2 - 148, 42, 296, 208);
+        ctx.restore();
+      }
+      _drawSocialProofBadge(ctx, CW/2, 262);
+
+      ctx.save();
+      ctx.font = `bold 36px ${CONFIG.brand.fontDimbo}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineWidth = 4; ctx.strokeStyle = B.darkBrown;
+      ctx.strokeText('Adopt, Explore, Decorate & Play', CW/2, 352);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('Adopt, Explore, Decorate & Play', CW/2, 352);
+      ctx.restore();
+      _drawBrandText(ctx, `Games with YOUR ${petLabel}!`, CW/2, 422, 58, B.darkBrown, B.orange);
+
+      this._renderer.draw();
+
+      const ICN = 132, ICN_GAP = 12, COLS = 3;
+      const gridW = COLS * ICN + (COLS - 1) * ICN_GAP;
+      const gridX = (CW - gridW) / 2;
+      for (let row = 0; row < 2; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const idx = row * COLS + col;
+          const img = this._gameImgs?.[idx];
+          const ix  = gridX + col * (ICN + ICN_GAP);
+          const iy  = 840 + row * (ICN + ICN_GAP);
+          _drawGameIconMini(ctx, img, ix, iy, ICN);
+        }
+      }
+
+      const pulse = 1 + Math.sin(this._ctaElapsed * 3.5) * 0.032;
+      ctx.save();
+      ctx.translate(CW/2, 1168 + 35); ctx.scale(pulse, pulse); ctx.translate(-CW/2, -(1168 + 35));
+      _drawCTAButton(ctx, CW/2 - 210, 1135, 420, 70);
+      ctx.restore();
+
+      ctx.font = `13px ${CONFIG.brand.fontBody}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillText('\u00a9 2026 WildWorks. All rights reserved.', CW/2, 1220);
     }
-
-    // 7. "Play for Free!" button — single CTA at bottom
-    const pulse = 1 + Math.sin(this._ctaElapsed * 3.5) * 0.032;
-    ctx.save();
-    ctx.translate(CW/2, 1168 + 35); ctx.scale(pulse, pulse); ctx.translate(-CW/2, -(1168 + 35));
-    _drawCTAButton(ctx, CW/2 - 210, 1135, 420, 70);
-    ctx.restore();
-
-    // 8. Copyright
-    ctx.font = `13px ${CONFIG.brand.fontBody}`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.fillText('\u00a9 2026 WildWorks. All rights reserved.', CW/2, 1220);
   }
   _show(el) {
     this._uiRoot.innerHTML = '';

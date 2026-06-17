@@ -3,23 +3,32 @@ import { Game } from './game.js';
 const app    = document.getElementById('app');
 const canvas = document.getElementById('gameCanvas');
 
-function resize() {
-  const ww = window.innerWidth;
-  const wh = window.innerHeight;
-  const aspect = 9 / 16;
+let _game = null;
 
-  const h = wh;
-  const w = wh * aspect;
+function resize() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const isLandscape = vw > vh;
+
+  const cw = isLandscape ? 1280 : 720;
+  const ch = isLandscape ? 720  : 1280;
+
+  // Scale canvas to fill viewport while preserving aspect ratio
+  const scale = Math.min(vw / cw, vh / ch);
+  const w = cw * scale;
+  const h = ch * scale;
 
   app.style.width   = `${w}px`;
   app.style.height  = `${h}px`;
-  app.style.left    = `${(ww - w) / 2}px`;
-  app.style.top     = '0px';
+  app.style.left    = `${(vw - w) / 2}px`;
+  app.style.top     = `${(vh - h) / 2}px`;
 
-  canvas.width        = 720;
-  canvas.height       = 1280;
+  canvas.width        = cw;
+  canvas.height       = ch;
   canvas.style.width  = `${w}px`;
   canvas.style.height = `${h}px`;
+
+  _game?.setOrientation(isLandscape);
 }
 
 resize();
@@ -27,13 +36,11 @@ window.addEventListener('resize', resize);
 new ResizeObserver(resize).observe(document.body);
 
 function startGame() {
-  const game = new Game(app);
-  game.start();
+  _game = new Game(app);
+  _game.start();
 }
 
 // ── MRAID v2.0 ───────────────────────────────────────────────────────────────
-// Use mraid.open() for CTA if available, else fall back to window.open().
-// Expose globally so game.js can call it.
 window.mraidOpen = function(url) {
   if (typeof mraid !== 'undefined') {
     mraid.open(url);
@@ -43,7 +50,6 @@ window.mraidOpen = function(url) {
 };
 
 if (typeof mraid !== 'undefined') {
-  // MRAID environment — wait for ready before sizing/starting
   if (mraid.getState() === 'loading') {
     mraid.addEventListener('ready', () => { resize(); startGame(); });
   } else {
@@ -51,6 +57,5 @@ if (typeof mraid !== 'undefined') {
     startGame();
   }
 } else {
-  // Browser / non-MRAID environment
   startGame();
 }
