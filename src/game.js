@@ -87,6 +87,13 @@ export class Game {
       tween(this._caption, { alpha: 0 }, 0.5, Ease.easeInCubic));
   }
 
+  // ── Head offset helper ────────────────────────────────────────────────────
+  _applyHeadOffsets(petId, variant) {
+    const key = `idle-${variant + 1}`;
+    const offsets = this._headOffsets?.[petId]?.[key] ?? null;
+    this._renderer.setHeadOffsets(offsets);
+  }
+
   // ── Floor-anchored cy ────────────────────────────────────────────────────
   // Returns renderer.cy so the pet's visual feet sit on FLOOR_Y at the given scale.
   _floorCy(scale, targetFloor = FLOOR_Y) {
@@ -210,6 +217,9 @@ export class Game {
     this._bgImg = bgImg;
     this._boxSpriteImg = boxImg;
     setLoadingProgress(1);
+
+    // Non-blocking: head offsets
+    fetch('assets/head-offsets.json').then(r => r.json()).then(d => { this._headOffsets = d; }).catch(() => {});
 
     // Start immediately
     this._toBoxReveal();
@@ -615,7 +625,7 @@ export class Game {
     this._renderer.cx     = chosen.cx;
     this._renderer.cy     = chosen.cy;
     this._renderer.scale  = chosen.scale;
-    this._renderer.playAnim(this.petId, 'idle-1');
+    this._renderer.playAnim(this.petId, 'idle-1'); this._applyHeadOffsets(this.petId, 0);
 
     this._selectRenderers = [];
 
@@ -658,7 +668,7 @@ export class Game {
     this._renderer.cx    = CW / 2;
     this._renderer.cy    = this._floorCy(2.5); // feet on the dock
     this._renderer.scale = 2.5;
-    this._renderer.playAnim(this.petId, 'idle-1');
+    this._renderer.playAnim(this.petId, 'idle-1'); this._applyHeadOffsets(this.petId, 0);
     this._renderer.paused = false;
     this._renderer.stopAccessory();
     this.colorIdx = 0;
@@ -684,6 +694,7 @@ export class Game {
         tween(this._color.orbScales, { [i]: 1.28 }, 0.14, Ease.easeOutBack,
           () => tween(this._color.orbScales, { [i]: 1 }, 0.12, Ease.easeOutCubic));
         this._renderer.playAnim(this.petId, `idle-${i + 1}`);
+        this._applyHeadOffsets(this.petId, i);
         this._renderer.paused = false; // animate — head/tail movement
         this._particles.emit(ARC_ORB_X[i], this._color.orbCys[i], 10,
           { kind: 'sparkle', color: CONFIG.colors[i].hex, speed: 180, size: 12, lifetime: 0.6 });
@@ -826,7 +837,7 @@ export class Game {
     };
     this._renderer.cy    = this._floorCy(2.5);
     this._renderer.scale = 2.5;
-    this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`);
+    this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`); this._applyHeadOffsets(this.petId, this.colorIdx);
     
     this._renderer.stopAccessory();
     this.accIdx = -1;
@@ -851,7 +862,7 @@ export class Game {
         this._acc.selected = i;
         tween(this._acc.orbScales, { [i]: 1.28 }, 0.14, Ease.easeOutBack,
           () => tween(this._acc.orbScales, { [i]: 1 }, 0.12, Ease.easeOutCubic));
-        this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`);
+        this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`); this._applyHeadOffsets(this.petId, this.colorIdx);
         
         this._renderer.playAccessory(this.petId, i, this.colorIdx);
         this._particles.emit(ARC_ORB_X[i], this._acc.orbCys[i], 10,
@@ -989,7 +1000,7 @@ export class Game {
     this._renderer.cx    = CW / 2;
     this._renderer.cy    = this._floorCy(2.0);
     this._renderer.scale = 2.0;
-    this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`);
+    this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`); this._applyHeadOffsets(this.petId, this.colorIdx);
     if (this.accIdx >= 0) this._renderer.playAccessory(this.petId, this.accIdx, this.colorIdx);
     else this._renderer.stopAccessory();
 
@@ -1178,7 +1189,7 @@ export class Game {
     this._renderer.cx    = CW / 2;
     this._renderer.cy    = CH + 300;   // off-screen bottom
     this._renderer.scale = 0.4;
-    this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`);
+    this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`); this._applyHeadOffsets(this.petId, this.colorIdx);
     if (this.accIdx >= 0) this._renderer.playAccessory(this.petId, this.accIdx, this.colorIdx);
 
     // Jump tween — smaller scale so pet sits on the rug, not towering above it
