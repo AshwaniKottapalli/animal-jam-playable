@@ -1216,7 +1216,7 @@ export class Game {
   _doInstall() {
     this._particles.burst(CW/2, FLOOR_Y - 100);
     Audio.play('cheer', { volume: 0.55 });
-    setTimeout(() => window.open(CONFIG.targetUrl, '_blank'), 150);
+    setTimeout(() => window.mraidOpen(CONFIG.targetUrl), 150);
   }
 
   _drawCTA(ctx, dt) {
