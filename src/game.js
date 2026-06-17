@@ -35,8 +35,8 @@ function _computeLayout(isLandscape) {
     RUG_FINAL_Y = 745;
   } else {
     FLOOR_Y     = 530;
-    ARC_ORB_X   = [200, 200, 200];
-    ARC_ORB_Y   = [210, 360, 510];
+    ARC_ORB_X   = [120, 120, 120];     // left panel
+    ARC_ORB_Y   = [140, 340, 540];     // evenly spread: 200px gaps
     RUG_FINAL_Y = 475;
   }
 }
@@ -707,7 +707,7 @@ export class Game {
     };
 
     const isL = CW > CH;
-    this._renderer.cx    = isL ? CW * 0.69 : CW / 2;
+    this._renderer.cx    = CW / 2;
     this._renderer.scale = isL ? 3.0 : 2.5;
     this._renderer.cy    = this._floorCy(this._renderer.scale);
     this._renderer.playAnim(this.petId, 'idle-1'); this._applyHeadOffsets(this.petId, 0);
@@ -747,7 +747,7 @@ export class Game {
 
     // Next button
     const isLc = CW > CH;
-    const [nxL, nxR, nyT, nyB] = isLc ? [940, 1180, 590, 660] : [CW/2-120, CW/2+120, 950, 1056];
+    const [nxL, nxR, nyT, nyB] = isLc ? [1040, 1260, 620, 706] : [CW/2-120, CW/2+120, 950, 1056];
     if (x >= nxL && x <= nxR && y >= nyT && y <= nyB) {
       Audio.play('timpani', { volume: 0.5 });
       this._petFlash = 1.0;
@@ -767,7 +767,7 @@ export class Game {
 
     // Soft spotlight behind pet
     const isLs = CW > CH;
-    const petCx = isLs ? CW * 0.69 : CW / 2;
+    const petCx = CW / 2;
     const slFd = getFrame('texture-custom-elements', 'color-light.png');
     if (slFd) {
       ctx.save();
@@ -865,8 +865,8 @@ export class Game {
     // Label + Next button
     const isLd = CW > CH;
     if (isLd) {
-      _drawBrandText(ctx, 'Pick a color!', ARC_ORB_X[1], 120, 26, B.darkBrown, '#ffffff');
-      drawFrame(ctx, 'texture-elements', 'btn-next.png', 940, 600, 240, 80);
+      _drawBrandText(ctx, 'Pick a color!', ARC_ORB_X[1], 78, 26, B.darkBrown, '#ffffff');
+      drawFrame(ctx, 'texture-elements', 'btn-next.png', 1040, 626, 220, 80);
     } else {
       _drawBrandText(ctx, 'Pick a color!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
       drawFrame(ctx, 'texture-elements', 'btn-next.png', CW/2 - 120, 950, 240, 106);
@@ -886,7 +886,7 @@ export class Game {
       elapsed:   0,
     };
     const isLa = CW > CH;
-    this._renderer.cx    = isLa ? CW * 0.69 : CW / 2;
+    this._renderer.cx    = CW / 2;
     this._renderer.scale = isLa ? 3.0 : 2.5;
     this._renderer.cy    = this._floorCy(this._renderer.scale);
     this._renderer.playAnim(this.petId, `idle-${this.colorIdx + 1}`); this._applyHeadOffsets(this.petId, this.colorIdx);
@@ -926,7 +926,7 @@ export class Game {
 
     // Adopt button
     const isLat = CW > CH;
-    const [axL, axR, ayT, ayB] = isLat ? [940, 1180, 590, 660] : [CW/2-120, CW/2+120, 950, 1056];
+    const [axL, axR, ayT, ayB] = isLat ? [1040, 1260, 620, 706] : [CW/2-120, CW/2+120, 950, 1056];
     if (x >= axL && x <= axR && y >= ayT && y <= ayB) {
       Audio.play('timpani', { volume: 0.5 });
       this._petFlash = 1.0;
@@ -1040,8 +1040,8 @@ export class Game {
     // Label + Adopt button
     const isLacc = CW > CH;
     if (isLacc) {
-      _drawBrandText(ctx, 'Pick an accessory!', ARC_ORB_X[1], 120, 26, B.darkBrown, '#ffffff');
-      drawFrame(ctx, 'texture-elements', 'btn-adopt.png', 940, 600, 240, 80);
+      _drawBrandText(ctx, 'Pick an accessory!', ARC_ORB_X[1], 78, 26, B.darkBrown, '#ffffff');
+      drawFrame(ctx, 'texture-elements', 'btn-adopt.png', 1040, 626, 220, 80);
     } else {
       _drawBrandText(ctx, 'Pick an accessory!', CW/2, ARC_ORB_Y[1] - 118, 30, B.darkBrown, '#ffffff');
       drawFrame(ctx, 'texture-elements', 'btn-adopt.png', CW/2 - 120, 950, 240, 106);
